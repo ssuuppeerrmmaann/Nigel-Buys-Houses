@@ -1,0 +1,6 @@
+{
+  "name": "Fair and Simple Home Offer",
+  "description": "A high-fidelity landing page replica for a real estate home cash purchase service, featuring interactive maps, lead capture forms, reviews, and interactive FAQ sections.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
