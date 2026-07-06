@@ -1,6 +1,6 @@
 {
   "name": "Nigel Buys Houses",
-  "description": "A high-fidelity landing page for a real estate home cash purchase service, featuring interactive maps, lead capture forms, reviews, and interactive FAQ sections.",
+  "description": "A high-fidelity landing page replica for a real estate home cash purchase service, featuring interactive maps, lead capture forms, reviews, and interactive FAQ sections.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

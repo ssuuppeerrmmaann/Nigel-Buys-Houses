@@ -1,5 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  initAuth, 
+  googleSignIn, 
+  googleSignOut, 
+  appendLeadToGoogleSheet, 
+  sendEmailNotification 
+} from './googleAuth';
+import { User } from 'firebase/auth';
+import { 
   Building, 
   ShieldCheck, 
   DollarSign, 
@@ -42,6 +50,8 @@ interface Lead {
   timestamp: string;
   estimatedValue: number;
   status: 'New' | 'Analyzing' | 'Offer Sent' | 'Action Needed';
+  googleSynced?: boolean;
+  notes?: string;
 }
 
 // Simulated active state ratings & stats
@@ -119,59 +129,45 @@ export default function App() {
   const [adminOpen, setAdminOpen] = useState(false);
   const [adminSearch, setAdminOpenSearch] = useState('');
 
-  // Initial load of dummy submissions just to showcase a functional database
+  // Google OAuth and Sync states
+  const [googleUser, setGoogleUser] = useState<User | null>(null);
+  const [googleToken, setGoogleToken] = useState<string | null>(null);
+  const [needsGoogleAuth, setNeedsGoogleAuth] = useState(true);
+  const [isSyncingAll, setIsSyncingAll] = useState(false);
+  const [syncError, setSyncError] = useState<string | null>(null);
+
+  // Initial load of submissions from real backend API and setup google auth listener
   useEffect(() => {
-    const saved = localStorage.getItem('fair_simple_leads');
-    if (saved) {
-      setLeadsDb(JSON.parse(saved));
-    } else {
-      const initialLeads: Lead[] = [
-        {
-          id: 'lead-1',
-          address: '4512 Suncrest Ave',
-          city: 'Orlando',
-          state: 'Florida',
-          zipCode: '32801',
-          firstName: 'Robert',
-          lastName: 'Manning',
-          phone: '(407) 555-8321',
-          email: 'robert.m81@gmail.com',
-          timestamp: '2026-06-10 14:32',
-          estimatedValue: 285000,
-          status: 'New'
-        },
-        {
-          id: 'lead-2',
-          address: '1109 Whispering Pines Dr',
-          city: 'Houston',
-          state: 'Texas',
-          zipCode: '77002',
-          firstName: 'Linda',
-          lastName: 'Preston',
-          phone: '(713) 555-9114',
-          email: 'lindapreston63@yahoo.com',
-          timestamp: '2026-06-09 09:12',
-          estimatedValue: 310000,
-          status: 'Analyzing'
-        },
-        {
-          id: 'lead-3',
-          address: '784 Cherry Hill Rd',
-          city: 'Rockford',
-          state: 'Michigan',
-          zipCode: '49341',
-          firstName: 'Brett',
-          lastName: 'Cavanaugh',
-          phone: '(910) 555-1234',
-          email: 'brettc_vets@outlook.com',
-          timestamp: '2026-06-08 17:05',
-          estimatedValue: 195000,
-          status: 'Offer Sent'
-        }
-      ];
-      localStorage.setItem('fair_simple_leads', JSON.stringify(initialLeads));
-      setLeadsDb(initialLeads);
-    }
+    // 1. Fetch leads from server
+    fetch('/api/leads')
+      .then(res => res.json())
+      .then(data => {
+        setLeadsDb(data);
+      })
+      .catch(err => {
+        console.error('Error fetching leads:', err);
+        // Fallback to local storage if API fails
+        const saved = localStorage.getItem('fair_simple_leads');
+        if (saved) setLeadsDb(JSON.parse(saved));
+      });
+
+    // 2. Initialize Google Auth state listener
+    const unsubscribe = initAuth(
+      (user, token) => {
+        setGoogleUser(user);
+        setGoogleToken(token);
+        setNeedsGoogleAuth(false);
+      },
+      () => {
+        setGoogleUser(null);
+        setGoogleToken(null);
+        setNeedsGoogleAuth(true);
+      }
+    );
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, []);
 
   // Save/Update leads state
@@ -220,30 +216,49 @@ export default function App() {
 
     setIsSubmitting(true);
 
-    // Simulate analyzing home and recording lead
-    setTimeout(() => {
-      const newLead: Lead = {
-        id: 'lead-' + Date.now(),
-        address,
-        city: city || 'Local Area',
-        state: selectedState,
-        zipCode: zipCode || 'County',
-        firstName,
-        lastName,
-        phone,
-        email: email || 'No email provided',
-        timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
-        estimatedValue: houseValue,
-        status: 'New'
-      };
+    const leadPayload = {
+      address,
+      city: city || 'Local Area',
+      state: selectedState,
+      zipCode: zipCode || 'County',
+      firstName,
+      lastName,
+      phone,
+      email: email || 'No email provided',
+      estimatedValue: houseValue
+    };
 
-      const updated = [newLead, ...leadsDb];
-      saveLeadsToStorage(updated);
-      
-      setSuccessLead(newLead);
-      setIsSubmitting(false);
-      setStep(3);
-    }, 1500);
+    fetch('/api/leads', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(leadPayload)
+    })
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to save lead');
+        return res.json();
+      })
+      .then(savedLead => {
+        setLeadsDb(prev => [savedLead, ...prev]);
+        setSuccessLead(savedLead);
+        setIsSubmitting(false);
+        setStep(3);
+      })
+      .catch(err => {
+        console.error('Error submitting lead to server, falling back to local:', err);
+        // Fallback to local storage
+        const fallbackLead: Lead = {
+          id: 'lead-' + Date.now(),
+          ...leadPayload,
+          timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
+          status: 'New'
+        };
+        const updated = [fallbackLead, ...leadsDb];
+        localStorage.setItem('fair_simple_leads', JSON.stringify(updated));
+        setLeadsDb(updated);
+        setSuccessLead(fallbackLead);
+        setIsSubmitting(false);
+        setStep(3);
+      });
   };
 
   const resetLeadForm = () => {
@@ -263,20 +278,155 @@ export default function App() {
   // Delete lead (for admin management)
   const handleDeleteLead = (id: string) => {
     if (confirm('Are you sure you want to remove this lead record?')) {
-      const updated = leadsDb.filter(l => l.id !== id);
-      saveLeadsToStorage(updated);
+      fetch(`/api/leads/${id}`, { method: 'DELETE' })
+        .then(res => {
+          if (!res.ok) throw new Error();
+          setLeadsDb(prev => prev.filter(l => l.id !== id));
+        })
+        .catch(err => {
+          console.error('API error deleting lead, falling back to local:', err);
+          const updated = leadsDb.filter(l => l.id !== id);
+          saveLeadsToStorage(updated);
+        });
     }
   };
 
   // Update lead status
   const handleUpdateStatus = (id: string, newStatus: Lead['status']) => {
-    const updated = leadsDb.map(l => {
-      if (l.id === id) {
-        return { ...l, status: newStatus };
+    fetch(`/api/leads/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: newStatus })
+    })
+      .then(res => {
+        if (!res.ok) throw new Error();
+        return res.json();
+      })
+      .then(updatedLead => {
+        setLeadsDb(prev => prev.map(l => l.id === id ? updatedLead : l));
+      })
+      .catch(err => {
+        console.error('API error updating status, falling back to local:', err);
+        const updated = leadsDb.map(l => {
+          if (l.id === id) {
+            return { ...l, status: newStatus };
+          }
+          return l;
+        });
+        saveLeadsToStorage(updated);
+      });
+  };
+
+  // Handle Google Login
+  const handleGoogleLogin = async () => {
+    try {
+      setSyncError(null);
+      const res = await googleSignIn();
+      if (res) {
+        setGoogleUser(res.user);
+        setGoogleToken(res.accessToken);
+        setNeedsGoogleAuth(false);
       }
-      return l;
-    });
-    saveLeadsToStorage(updated);
+    } catch (err: any) {
+      console.error('Google sign in error:', err);
+      setSyncError('Failed to sign in with Google. Please try again.');
+    }
+  };
+
+  // Handle Google Logout
+  const handleGoogleLogout = async () => {
+    try {
+      await googleSignOut();
+      setGoogleUser(null);
+      setGoogleToken(null);
+      setNeedsGoogleAuth(true);
+    } catch (err) {
+      console.error('Logout error:', err);
+    }
+  };
+
+  // Sync a single lead to Google Sheets and send email notification via Gmail
+  const handleSyncLead = async (lead: Lead) => {
+    if (!googleToken) {
+      setSyncError('You must sign in with Google first.');
+      return;
+    }
+    
+    // Set syncing state in the leads array locally during operation
+    setLeadsDb(prev => prev.map(l => l.id === lead.id ? { ...l, notes: 'Syncing...' } : l));
+
+    try {
+      // 1. Append to Google Sheet
+      const sheetSuccess = await appendLeadToGoogleSheet(googleToken, lead);
+      if (!sheetSuccess) {
+        throw new Error('Failed to append to Google Sheet.');
+      }
+
+      // 2. Send email notification
+      const emailSuccess = await sendEmailNotification(googleToken, lead);
+      if (!emailSuccess) {
+        console.warn('Google Sheet synced but Gmail notification failed to send.');
+      }
+
+      // 3. Save synced status on the server
+      const response = await fetch(`/api/leads/${lead.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ googleSynced: true, notes: `Synced successfully on ${new Date().toLocaleDateString()}` })
+      });
+
+      if (!response.ok) throw new Error('Failed to update synced status on server');
+      const updatedLead = await response.json();
+
+      setLeadsDb(prev => prev.map(l => l.id === lead.id ? updatedLead : l));
+    } catch (err: any) {
+      console.error('Sync lead error:', err);
+      setLeadsDb(prev => prev.map(l => l.id === lead.id ? { ...l, notes: 'Sync failed' } : l));
+      setSyncError(`Sync failed: ${err.message || err}`);
+    }
+  };
+
+  // Sync all unsynced leads sequentially
+  const handleSyncAllUnsynced = async () => {
+    if (!googleToken) {
+      setSyncError('You must sign in with Google first.');
+      return;
+    }
+
+    const unsynced = leadsDb.filter(l => !l.googleSynced);
+    if (unsynced.length === 0) return;
+
+    setIsSyncingAll(true);
+    setSyncError(null);
+
+    let successCount = 0;
+    for (const lead of unsynced) {
+      try {
+        const sheetSuccess = await appendLeadToGoogleSheet(googleToken, lead);
+        if (sheetSuccess) {
+          await sendEmailNotification(googleToken, lead);
+          
+          const response = await fetch(`/api/leads/${lead.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ googleSynced: true, notes: `Synced on ${new Date().toLocaleDateString()}` })
+          });
+          
+          if (response.ok) {
+            const updated = await response.json();
+            setLeadsDb(prev => prev.map(l => l.id === lead.id ? updated : l));
+            successCount++;
+          }
+        }
+      } catch (err) {
+        console.error(`Failed to sync lead ${lead.id}:`, err);
+      }
+    }
+
+    setIsSyncingAll(false);
+    if (successCount < unsynced.length) {
+      setSyncError(`Completed sync. ${successCount} of ${unsynced.length} leads were synced successfully.`);
+    }
   };
 
   // Filter state list in map explorer
@@ -309,9 +459,9 @@ export default function App() {
     <div className="min-h-screen flex flex-col font-sans transition-colors duration-300">
       
       {/* 24-HOUR ADVISORY/BANNER ON TOP */}
-      <div id="sticky-callout" className="bg-[#ff7043] text-white py-2.5 px-4 text-center text-xs md:text-sm font-semibold tracking-wide shadow-sm z-50">
-        <span className="inline-block bg-white/20 px-2 py-0.5 rounded text-[11px] uppercase mr-2 animate-pulse">⏰ Live Alert</span>
-        Nationwide coverage update: We currently buy in <strong className="font-bold underline text-white">32 states</strong>! Avoid real estate commission fees.
+      <div id="sticky-callout" className="bg-[#ff7043] text-white py-3 px-5 text-center text-sm md:text-base font-bold tracking-wide shadow-sm z-50">
+        <span className="inline-block bg-white/20 px-2.5 py-1 rounded text-xs uppercase mr-2 animate-pulse">⏰ Live Alert</span>
+        Nationwide coverage update: We currently buy in <strong className="font-bold underline text-white">32 states</strong>! Avoid real estate commission fees by about 10%
       </div>
 
       {/* HEADER SECTION */}
@@ -320,21 +470,21 @@ export default function App() {
           
           {/* LOGO */}
           <div className="flex items-center space-x-3.5">
-            <div className="bg-[#092641] text-white p-2.5 rounded-lg shadow-md flex items-center justify-center">
-              <Building className="h-6 w-6 stroke-2 text-[#ff7043]" />
-            </div>
+            <img 
+              src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/logos/nigel_buys_houses_transparent.png" 
+              alt="Nigel Buys Houses Logo" 
+              className="h-10 md:h-12 w-auto object-contain" 
+              referrerPolicy="no-referrer" 
+            />
             <div>
               <span className="block font-serif text-xl md:text-2xl font-black text-[#092641] leading-none tracking-tight">
-                Fair &amp; Simple
-              </span>
-              <span className="block text-[10px] md:text-xs text-[#868c92] font-semibold tracking-widest uppercase mt-0.5">
-                Home Offer Services
+                Nigel Buys Houses
               </span>
             </div>
           </div>
 
           {/* DESKTOP NAVIGATION ACCORDION */}
-          <nav className="hidden lg:flex items-center space-x-8 text-sm font-bold text-[#092641]">
+          <nav className="hidden lg:flex items-center space-x-8 text-[16px] font-bold text-[#092641]">
             <a href="#how-it-works" className="hover:text-[#ff7043] transition-colors">How It Works</a>
             <a href="#compare" className="hover:text-[#ff7043] transition-colors">Compare Options</a>
             <a href="#coverage" className="hover:text-[#ff7043] transition-colors">Where We Buy</a>
@@ -429,7 +579,7 @@ export default function App() {
           
           {/* HERO LEFT: TEXT VALUE PROPOSITION */}
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            <div className="inline-flex items-center space-x-2 bg-slate-800/80 border border-slate-700 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#ff7043] tracking-wide">
+            <div className="inline-flex items-center space-x-2 bg-slate-800/80 border border-slate-700 px-4 py-2 rounded-full text-sm font-semibold text-[#ff7043] tracking-wide">
               <span>A+ Accredited Business</span>
               <span className="h-1.5 w-1.5 rounded-full bg-green-400 animate-ping" />
               <span className="font-bold text-green-400">Online &amp; Active</span>
@@ -471,7 +621,7 @@ export default function App() {
             {/* ADVISORY ROW */}
             <div className="text-xs text-slate-400 mt-2 flex items-center justify-center lg:justify-start space-x-1.5">
               <AlertCircle className="h-4 w-4 text-emerald-400" />
-              <span>We do <strong className="text-emerald-400">NOT</strong> buy homes currently listed with properties on active MLS brokerage contracts.</span>
+              <span>We buy properties currently listed with Real Estate Brokerages and active on the MLS. We are NOT soliciting your property as a listing.</span>
             </div>
           </div>
 
@@ -726,7 +876,7 @@ export default function App() {
           
           <div className="text-center max-w-3xl mx-auto space-y-4">
             <h2 className="text-3xl md:text-4xl font-serif font-black text-[#092641]">
-              How the Fair &amp; Simple Process Works
+              How the Nigel Buys Houses Process Works
             </h2>
             <p className="text-slate-600 font-light">
               We took real estate out of the dark ages. Here is our 3-step lead process, designed to provide transparent choices for your timeline and goals.
@@ -820,7 +970,7 @@ export default function App() {
                 </span>
               </div>
               <h3 className="text-2xl font-serif font-black text-[#092641] mb-3">
-                The "Fair &amp; Simple Cash Offer"
+                The "Nigel Buys Houses Cash Offer"
               </h3>
               <p className="text-slate-500 text-sm font-light mb-6">
                 Get a quick, assured buyout estimate on your property. Perfect for fast relocation, inherited homes, dealing with tenants, or escaping heavy foreclosure timelines.
@@ -1019,7 +1169,7 @@ export default function App() {
           
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
             <h2 className="text-3xl md:text-4xl font-serif font-black text-[#092641]">
-              Where Fair &amp; Simple Home Offer Buys Houses
+              Where Nigel Buys Houses Buys Houses
             </h2>
             <p className="text-slate-600 font-light">
               We operate actively across the United States. Click on your state below or search to find your local coordinator, average buyout times, and check state eligibility.
@@ -1132,7 +1282,7 @@ export default function App() {
                         {[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-current shrink-0" />)}
                       </div>
                       <p className="text-xs text-slate-300 italic leading-relaxed">
-                        "Choosing Fair and Simple in {activeStateRecord.name} was the best choice I made after my mom passed away. {activeStateRecord.coordinator} handled the difficult probate details. I walked away with cash in 11 days."
+                        "Choosing Nigel Buys Houses in {activeStateRecord.name} was the best choice I made after my mom passed away. {activeStateRecord.coordinator} handled the difficult probate details. I walked away with cash in 11 days."
                       </p>
                     </div>
 
@@ -1180,7 +1330,7 @@ export default function App() {
                 People Over Profits &mdash; Always. No High Pressure.
               </h2>
               <p className="text-slate-300 text-sm md:text-base font-light leading-relaxed">
-                When we launched Fair &amp; Simple, we didn't want to become just another transactional investment company. We've spent over 7 years educating home owners on what option truly retains their equity. No confusing terminology or aggressive agent push-tactics &mdash; just structured, fair solutions.
+                When we launched Nigel Buys Houses, we didn't want to become just another transactional investment company. We've spent over 7 years educating home owners on what option truly retains their equity. No confusing terminology or aggressive agent push-tactics &mdash; just structured, fair solutions.
               </p>
 
               {/* Manifesto key checklist */}
@@ -1274,7 +1424,7 @@ export default function App() {
           <div className="space-y-4">
             {[
               {
-                q: "What type of properties does Fair & Simple purchase?",
+                q: "What type of properties does Nigel Buys Houses purchase?",
                 a: "We buy single family homes, townhouses, duplexes, multi-family, and vacant properties. It doesn't matter if your home requires light updates or total hoarder cleanups &mdash; we prepare as-is valuation estimates for absolutely any physical condition."
               },
               {
@@ -1287,7 +1437,7 @@ export default function App() {
               },
               {
                 q: "Are cash offers for houses actually legitimate?",
-                a: "While the market has speculative investors, certified buyers like Fair & Simple with an A+ BBB Accreditation verify funds securely with closing title offices. We utilize local, national underwriters to secure standard client transactions legally."
+                a: "While the market has speculative investors, certified buyers like Nigel Buys Houses with an A+ BBB Accreditation verify funds securely with closing title offices. We utilize local, national underwriters to secure standard client transactions legally."
               },
               {
                 q: "What if my house needs extensive structural repairs?",
@@ -1330,11 +1480,16 @@ export default function App() {
           {/* Logo & Disclaimer column */}
           <div className="md:col-span-6 space-y-4">
             <div className="flex items-center space-x-2.5">
-              <Building className="h-5 w-5 text-[#ff7043] shrink-0" />
-              <span className="font-serif font-black text-[#092641] text-lg">Fair &amp; Simple Offer</span>
+              <img 
+                src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/logos/nigel_buys_houses_transparent.png" 
+                alt="Nigel Buys Houses Logo" 
+                className="h-8 w-auto object-contain" 
+                referrerPolicy="no-referrer" 
+              />
+              <span className="font-serif font-black text-[#092641] text-lg">Nigel Buys Houses</span>
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed">
-              &copy; {new Date().getFullYear()} Fair and Simple Home Offer Services. Powered by certified local underwriters. Subject to active local guidelines. All home valuations are estimates based on accessible public registry records. This website replicates state operations showing options with high-fidelity performance.
+              &copy; {new Date().getFullYear()} Nigel Buys Houses. Powered by certified local underwriters. Subject to active local guidelines. All home valuations are estimates based on accessible public registry records. This website replicates state operations showing options with high-fidelity performance.
             </p>
             <div className="flex items-center space-x-3">
               <span className="inline-block h-2.5 w-2.5 bg-green-500 rounded-full" />
@@ -1396,9 +1551,128 @@ export default function App() {
               </button>
             </div>
 
-            {/* Modal Body with LocalStorage Database */}
-            <div className="p-6 overflow-y-auto flex-1 space-y-4">
+            {/* Modal Body with Leads Database */}
+            <div className="p-6 overflow-y-auto flex-1 space-y-6">
               
+              {/* GOOGLE WORKSPACE INTEGRATION STATUS PANEL */}
+              <div className="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <h4 className="text-sm font-bold uppercase tracking-wider text-[#092641] flex items-center">
+                      <span className={`inline-block h-2.5 w-2.5 rounded-full mr-2 ${googleToken ? 'bg-green-500 animate-pulse' : 'bg-amber-500'}`} />
+                      Google Workspace Sync & Notifications
+                    </h4>
+                    <p className="text-xs text-slate-500 mt-1">
+                      {googleToken 
+                        ? "Active connection. Form submissions are synced to Google Sheets and notifications sent via Gmail." 
+                        : "Connect your Google Account to enable automatic sheets persistence and email notifications."}
+                    </p>
+                  </div>
+                  <div>
+                    {needsGoogleAuth ? (
+                      <button 
+                        onClick={handleGoogleLogin}
+                        className="gsi-material-button text-xs"
+                        style={{
+                          backgroundColor: 'white',
+                          border: '1px solid #747775',
+                          borderRadius: '4px',
+                          boxSizing: 'border-box',
+                          color: '#1f1f1f',
+                          cursor: 'pointer',
+                          fontFamily: '"Roboto", arial, sans-serif',
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          height: '36px',
+                          letterSpacing: '0.25px',
+                          outline: 'none',
+                          padding: '0 12px',
+                          position: 'relative',
+                          textAlign: 'center',
+                          transition: 'background-color .218s, border-color .218s, box-shadow .218s',
+                          userSelect: 'none',
+                          width: 'auto',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '8px'
+                        }}
+                      >
+                        <svg version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" style={{ display: 'block', width: '18px', height: '18px' }}>
+                          <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"></path>
+                          <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"></path>
+                          <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"></path>
+                          <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"></path>
+                        </svg>
+                        <span>Sign in with Google</span>
+                      </button>
+                    ) : (
+                      <div className="flex items-center space-x-3 bg-white border border-slate-200 py-1.5 px-3 rounded-lg">
+                        <div className="text-right">
+                          <p className="text-xs font-bold text-[#092641]">{googleUser?.displayName || 'Nigel Buys Houses'}</p>
+                          <p className="text-[10px] text-slate-500">{googleUser?.email}</p>
+                        </div>
+                        <button 
+                          onClick={handleGoogleLogout}
+                          className="text-[11px] font-bold text-[#ff7043] hover:underline"
+                        >
+                          Sign out
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* TARGET SHEETS & ACTIONS AREA */}
+                <div className="border-t border-slate-200/60 pt-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 text-xs">
+                  <div className="space-y-1">
+                    <strong className="text-slate-500 font-bold uppercase text-[9px]">Google Sheet Destination</strong>
+                    <p className="font-semibold text-slate-700 flex items-center">
+                      <ExternalLink className="h-3.5 w-3.5 text-blue-500 mr-1.5" />
+                      <a 
+                        href="https://docs.google.com/spreadsheets/d/1sy123NFntbOff-jOqcAFrGJj4Yv4uQU1IMz5vhxKijA/edit?gid=0#gid=0" 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline font-semibold"
+                      >
+                        Nigel Buys Houses - Lead Valuation Registry
+                      </a>
+                    </p>
+                  </div>
+
+                  {googleToken && (
+                    <div className="flex items-center space-x-2">
+                      <button
+                        onClick={handleSyncAllUnsynced}
+                        disabled={isSyncingAll || leadsDb.filter(l => !l.googleSynced).length === 0}
+                        className={`px-4 py-2 rounded-lg font-bold text-xs flex items-center space-x-1.5 transition ${
+                          leadsDb.filter(l => !l.googleSynced).length === 0
+                            ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                            : 'bg-green-600 text-white hover:bg-green-700 shadow-md shadow-green-600/15'
+                        }`}
+                      >
+                        {isSyncingAll ? (
+                          <>
+                            <span className="animate-spin inline-block h-3 w-3 border-2 border-white border-t-transparent rounded-full mr-1.5" />
+                            <span>Syncing Leads...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>Sync All Unsynced ({leadsDb.filter(l => !l.googleSynced).length})</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {syncError && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-2.5 text-xs text-red-600 font-medium">
+                    ⚠️ {syncError}
+                  </div>
+                )}
+              </div>
+
               {/* Filter controls */}
               <div className="flex flex-col sm:flex-row gap-3 justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
                 <div className="relative w-full sm:w-72">
@@ -1479,15 +1753,38 @@ export default function App() {
                       </div>
 
                       <div>
-                        <strong className="block text-slate-400 font-bold uppercase text-[9px]">Timestamp</strong>
+                        <strong className="block text-slate-400 font-bold uppercase text-[9px]">Submission Time</strong>
                         <p className="text-slate-500 mt-0.5">{lead.timestamp}</p>
-                        <p className="text-[10px] text-slate-400">Matched in system</p>
+                        <p className={`text-[10px] font-semibold mt-1 flex items-center ${lead.googleSynced ? 'text-green-600' : 'text-amber-600'}`}>
+                          <span className={`inline-block h-2 w-2 rounded-full mr-1 ${lead.googleSynced ? 'bg-green-500' : 'bg-amber-500'}`} />
+                          {lead.googleSynced ? 'Spreadsheet Synced' : 'Sync Pending'}
+                        </p>
                       </div>
 
-                      <div className="flex flex-col justify-end space-y-1">
+                      <div className="flex flex-col justify-end space-y-1.5">
+                        {lead.googleSynced ? (
+                          <div className="bg-green-50 text-green-700 text-[10px] py-1 px-2.5 rounded border border-green-200 font-bold flex items-center justify-center">
+                            <Check className="h-3 w-3 text-green-600 mr-1" />
+                            <span>Synced (Sheets & Gmail)</span>
+                          </div>
+                        ) : (
+                          <button 
+                            disabled={needsGoogleAuth || lead.notes === 'Syncing...'}
+                            onClick={() => handleSyncLead(lead)}
+                            className={`text-[10px] py-1 px-2.5 rounded border font-bold transition flex items-center justify-center space-x-1 ${
+                              needsGoogleAuth 
+                                ? 'bg-slate-50 text-slate-400 border-slate-200 cursor-not-allowed'
+                                : 'bg-green-50 text-green-700 hover:bg-green-100 border-green-200 cursor-pointer'
+                            }`}
+                            title={needsGoogleAuth ? "Sign in with Google above to sync" : "Sync this lead to Google Sheets and Gmail alert"}
+                          >
+                            <span>{lead.notes === 'Syncing...' ? 'Syncing...' : 'Sync to Google'}</span>
+                          </button>
+                        )}
+
                         <button 
                           onClick={() => {
-                            alert(`Simulating system contact! Calling coordinator of ${lead.state} to process the offer on ${lead.address}.`);
+                            alert(`Underwriter Contact: Connecting to coordinator for ${lead.state} regarding lead address ${lead.address}.`);
                           }}
                           className="bg-[#092641] text-white hover:bg-[#1a3a5a] text-[10px] py-1 px-2.5 rounded font-bold transition flex items-center justify-center space-x-1"
                         >
