@@ -1,11 +1,11 @@
 // FILE: HomePage.tsx
-// TITLE: HomePage (Logo Updates & Formspree)
+// TITLE: HomePage (Lean Formspree Architecture)
 
 // SECTION: Core Imports
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useForm } from '@formspree/react';
 import { 
-  Building, ShieldCheck, DollarSign, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Trash, Phone, Mail, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ExternalLink, ChevronRight, ClipboardList
+  Building, ShieldCheck, DollarSign, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList
 } from 'lucide-react';
 
 // SECTION: Type Definitions
@@ -88,28 +88,9 @@ export default function HomePage() {
   const [repairEstimate, setRepairEstimate] = useState(15000);
 
   const [expandedFaq, setExpandedAccordion] = useState<number | null>(null);
-  const [leadsDb, setLeadsDb] = useState<Lead[]>([]);
-  const [adminOpen, setAdminOpen] = useState(false);
-  const [adminSearch, setAdminOpenSearch] = useState('');
 
   // Formspree Hook Configuration
   const [formState, handleFormspreeSubmit] = useForm('xpqgnqlj');
-
-  useEffect(() => {
-    const saved = localStorage.getItem('fair_simple_leads');
-    if (saved) {
-      try {
-        setLeadsDb(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse local leads', e);
-      }
-    }
-  }, []);
-
-  const saveLeadsToStorage = (updatedList: Lead[]) => {
-    localStorage.setItem('fair_simple_leads', JSON.stringify(updatedList));
-    setLeadsDb(updatedList);
-  };
 
   const handleStateAbbrSelect = (abbr: string) => {
     setActiveStateAbbr(abbr);
@@ -150,21 +131,17 @@ export default function HomePage() {
       email,
       estimatedValue: houseValue,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      status: 'New',
-      webhookSynced: false
+      status: 'New'
     };
 
     try {
       await handleFormspreeSubmit(leadPayload as any);
-      leadPayload.webhookSynced = true;
+      setSuccessLead(leadPayload);
+      setStep(3);
     } catch (err) {
-      console.error('Formspree fetch failed. Saving locally.', err);
+      console.error('Formspree dispatch failed.', err);
+      setFieldError('There was an issue processing your request. Please try again.');
     }
-
-    const updatedDb = [leadPayload, ...leadsDb];
-    saveLeadsToStorage(updatedDb);
-    setSuccessLead(leadPayload);
-    setStep(3);
   };
 
   const resetLeadForm = () => {
@@ -179,13 +156,6 @@ export default function HomePage() {
     setEmail('');
     setSuccessLead(null);
     setFieldError('');
-  };
-
-  const handleDeleteLead = (id: string) => {
-    if (confirm('Are you sure you want to remove this lead record locally?')) {
-      const updated = leadsDb.filter(l => l.id !== id);
-      saveLeadsToStorage(updated);
-    }
   };
 
   // SECTION: Calculators
@@ -823,19 +793,19 @@ export default function HomePage() {
 
       <footer className="bg-white border-t border-[#ced1d5]/40 py-16 text-slate-600 text-xs md:text-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-12 gap-10">
-          <div className="md:col-span-6 space-y-4">
+          <div className="md:col-span-8 space-y-4">
             <div className="flex items-center space-x-2.5">
               <img src="https://github.com/ssuuppeerrmmaann/Nigel-Buys-Houses/blob/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" alt="Nigel Buys Houses Logo" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
               <span className="font-serif font-black text-[#092641] text-lg">Nigel Buys Houses</span>
             </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">&copy; {new Date().getFullYear()} Nigel Buys Houses. Powered by certified local underwriters. Subject to active local guidelines. All home valuations are estimates based on accessible public registry records. This website replicates state operations showing options with high-fidelity performance.</p>
+            <p className="text-[11px] text-slate-400 leading-relaxed max-w-2xl">&copy; {new Date().getFullYear()} Nigel Buys Houses. Powered by certified local underwriters. Subject to active local guidelines. All home valuations are estimates based on accessible public registry records. This website replicates state operations showing options with high-fidelity performance.</p>
             <div className="flex items-center space-x-3">
               <span className="inline-block h-2.5 w-2.5 bg-green-500 rounded-full" />
               <span className="text-[11px] text-slate-400">Local Title Partners Secured &amp; Bonded</span>
             </div>
           </div>
 
-          <div className="md:col-span-3 space-y-3">
+          <div className="md:col-span-4 space-y-3">
             <h4 className="font-bold text-[#092641] uppercase tracking-wider text-[11px]">Help Hotline</h4>
             <div className="space-y-2">
               <a href="tel:(480)500-9801" className="font-bold text-[#ff7043] text-sm hover:underline block">☎ Call/Text: (480) 500-9801</a>
@@ -843,109 +813,8 @@ export default function HomePage() {
               <p className="text-slate-400 text-[11px]">Corporate Office: Rockford, MI 49341</p>
             </div>
           </div>
-
-          <div className="md:col-span-3 space-y-3">
-            <h4 className="font-bold text-[#092641] uppercase tracking-wider text-[11px]">Testing Tools</h4>
-            <div className="space-y-2">
-              <button onClick={() => setAdminOpen(true)} className="bg-[#092641] text-white px-3.5 py-1.5 rounded text-[11px] font-bold uppercase tracking-wider flex items-center space-x-1.5 hover:bg-[#1e3a5f] transition cursor-pointer" style={{ minHeight: '36px' }}>
-                <ClipboardList className="h-4 w-4" />
-                <span>🔑 Inspect leads ({leadsDb.length})</span>
-              </button>
-              <p className="text-[10px] text-slate-400">Simulate admin evaluation pipeline and status.</p>
-            </div>
-          </div>
         </div>
       </footer>
-
-      {adminOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden text-[#092641] flex flex-col max-h-[90vh]">
-            <div className="bg-[#092641] text-white p-5 flex justify-between items-center">
-              <div>
-                <h3 className="text-lg font-serif font-bold text-white flex items-center"><ClipboardList className="h-5 w-5 text-[#ff7043] mr-2" />Lead Valuation Inspect Portal (Admin Simulator)</h3>
-                <p className="text-xs text-slate-300">Review lead submission state variables securely.</p>
-              </div>
-              <button onClick={() => setAdminOpen(false)} className="p-1 rounded-full hover:bg-slate-800 text-slate-300 hover:text-white" style={{ minHeight: '44px', minWidth: '44px' }}><X className="h-6 w-6" /></button>
-            </div>
-
-            <div className="p-6 overflow-y-auto flex-1 space-y-6">
-              <div className="flex flex-col sm:flex-row gap-3 justify-between items-center bg-slate-50 p-3 rounded-lg border border-slate-100">
-                <div className="relative w-full sm:w-72">
-                  <input type="text" placeholder="Search leads by name, address..." value={adminSearch} onChange={(e) => setAdminOpenSearch(e.target.value)} className="w-full pl-3 pr-3 py-1.5 border border-slate-300 bg-white rounded text-xs focus:outline-none" />
-                </div>
-                <div className="text-xs text-slate-500 font-bold shrink-0">Total Local Leads: {leadsDb.length}</div>
-              </div>
-
-              {leadsDb.filter(l => l.firstName.toLowerCase().includes(adminSearch.toLowerCase()) || l.lastName.toLowerCase().includes(adminSearch.toLowerCase()) || l.address.toLowerCase().includes(adminSearch.toLowerCase())).map((lead) => {
-                const cashBuy = Math.round(lead.estimatedValue * cashOfferPercentage);
-                const listBuy = Math.round(lead.estimatedValue * partnerSalePercentage);
-
-                return (
-                  <div key={lead.id} className="border border-slate-200 rounded-xl p-4 space-y-3 hover:border-slate-300 transition bg-slate-50/50">
-                    <div className="flex flex-col sm:flex-row justify-between sm:items-center border-b border-slate-100 pb-2 gap-2">
-                      <div>
-                        <span className="text-xs font-bold text-[#ff7043] uppercase tracking-wider">Property Address</span>
-                        <p className="font-extrabold text-sm text-[#092641] flex items-center mt-0.5">
-                          <MapPin className="h-4 w-4 text-[#ff7043] mr-1 shrink-0" />
-                          {lead.address}, {lead.city}, {lead.state} {lead.zipCode}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button onClick={() => handleDeleteLead(lead.id)} className="text-[#ff7043] hover:text-red-600 p-1 hover:bg-slate-100 rounded" title="Delete record locally" style={{ minHeight: '36px', minWidth: '36px' }}>
-                          <Trash className="h-4 w-4 mx-auto" />
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 text-xs">
-                      <div>
-                        <strong className="block text-slate-400 font-bold uppercase text-[9px]">Seller Contact</strong>
-                        <p className="font-bold text-[#092641] mt-0.5">{lead.firstName} {lead.lastName}</p>
-                        <p className="text-slate-500">{lead.phone}</p>
-                        <p className="text-slate-500 overflow-hidden text-ellipsis">{lead.email}</p>
-                      </div>
-                      <div>
-                        <strong className="block text-slate-400 font-bold uppercase text-[9px]">County Valuations</strong>
-                        <p className="font-semibold text-slate-700 mt-0.5">EST. Value: ${lead.estimatedValue.toLocaleString()}</p>
-                        <p className="text-[#ff7043]">Offer A: ${cashBuy.toLocaleString()}</p>
-                        <p className="text-green-600 font-bold">Offer B: ${listBuy.toLocaleString()}</p>
-                      </div>
-                      <div>
-                        <strong className="block text-slate-400 font-bold uppercase text-[9px]">Submission Time</strong>
-                        <p className="text-slate-500 mt-0.5">{lead.timestamp}</p>
-                        <p className={`text-[10px] font-semibold mt-1 flex items-center ${lead.webhookSynced ? 'text-green-600' : 'text-amber-600'}`}>
-                          <span className={`inline-block h-2 w-2 rounded-full mr-1 ${lead.webhookSynced ? 'bg-green-500' : 'bg-amber-500'}`} />
-                          {lead.webhookSynced ? 'Formspree Pushed' : 'Formspree Failed'}
-                        </p>
-                      </div>
-                      <div className="flex flex-col justify-end space-y-1.5">
-                        <button onClick={() => alert(`Underwriter Contact: Connecting to coordinator for ${lead.state} regarding lead address ${lead.address}.`)} className="bg-[#092641] text-white hover:bg-[#1a3a5a] text-[10px] py-1 px-2.5 rounded font-bold transition flex items-center justify-center space-x-1">
-                          <span>Call Coordinator</span>
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {leadsDb.length === 0 && (
-                <div className="text-center p-12 bg-slate-50 rounded-xl">
-                  <AlertCircle className="h-10 w-10 text-slate-400 mx-auto mb-2" />
-                  <p className="text-sm font-bold text-slate-500">No home valuation lead records currently saved locally.</p>
-                </div>
-              )}
-            </div>
-
-            <div className="bg-slate-50 p-4 border-t border-slate-100 flex justify-between items-center text-xs">
-              <span className="text-slate-400">Leads displayed are cached locally. Backend processing handled via Formspree Endpoint.</span>
-              <button onClick={() => setAdminOpen(false)} className="bg-[#092641] text-white hover:bg-slate-800 px-5 py-2 rounded font-bold" style={{ minHeight: '36px' }}>
-                Close View
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
     </div>
   );
 }
