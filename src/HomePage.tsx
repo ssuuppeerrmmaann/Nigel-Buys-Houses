@@ -1,5 +1,5 @@
 // FILE: HomePage.tsx
-// TITLE: HomePage (Native Fetch Formspree Architecture)
+// TITLE: HomePage (Typography Scaling & Copy Updates)
 
 // SECTION: Core Imports
 import React, { useState, useEffect } from 'react';
@@ -153,7 +153,7 @@ export default function HomePage() {
         console.warn('Formspree received payload but returned an error status.');
       }
     } catch (err) {
-      console.error('Formspree fetch failed. Saving locally.', err);
+      console.error('Formspree fetch failed.', err);
     }
 
     setSuccessLead(leadPayload);
@@ -206,7 +206,7 @@ export default function HomePage() {
           
           <div className="flex items-center space-x-3.5">
             <img 
-              src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/images/nigel_buys_houses_transparent.png" 
+              src="https://github.com/ssuuppeerrmmaann/Nigel-Buys-Houses/blob/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" 
               alt="Nigel Buys Houses Logo" 
               className="h-10 md:h-12 w-auto object-contain" 
               referrerPolicy="no-referrer" 
@@ -458,32 +458,32 @@ export default function HomePage() {
             )}
 
             {step === 3 && successLead && (
-              <div className="space-y-4 text-center">
-                <div className="bg-emerald-50 text-emerald-800 p-5 rounded-xl border border-emerald-200 inline-block my-2">
-                  <CheckCircle className="h-10 w-10 text-emerald-500 mx-auto mb-2" />
-                  <h4 className="font-serif font-black text-[#092641] text-lg">Information Securely Received!</h4>
-                  <p className="text-sm text-slate-700 mt-2 leading-relaxed">
-                    Thank you, <strong className="font-bold">{successLead.firstName}</strong>. Your property coordinates for <strong className="underline">{successLead.address}</strong> have been logged into our pipeline.
+              <div className="space-y-6 text-center py-4">
+                <div className="bg-emerald-50 text-emerald-800 p-6 rounded-xl border border-emerald-200 inline-block">
+                  <CheckCircle className="h-12 w-12 text-emerald-500 mx-auto mb-3" />
+                  <h4 className="font-serif font-black text-[#092641] text-2xl">Information Securely Received!</h4>
+                  <p className="text-lg text-slate-700 mt-3 leading-relaxed">
+                    Thank you, <strong className="font-bold">{successLead.firstName}</strong>. Your property address at <strong className="underline">{successLead.address}</strong> has been submitted and will be reviewed shortly.
                   </p>
                 </div>
 
-                <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-left space-y-3">
-                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                <div className="bg-slate-50 p-6 rounded-xl border border-slate-200 text-left space-y-4 shadow-sm">
+                  <p className="text-base text-slate-600 leading-relaxed font-medium">
                     Our team is currently evaluating your local county assessor data. Instead of generating a generic, automated estimate, a regional coordinator is performing a custom valuation.
                   </p>
-                  <p className="text-xs text-slate-600 leading-relaxed font-bold text-emerald-700">
+                  <p className="text-base md:text-lg text-emerald-700 leading-relaxed font-bold bg-emerald-50/50 p-3 rounded-lg border border-emerald-100">
                     🚀 A formal, itemized written proposal is being drafted and will be sent to your email address: {successLead.email} within 24 business hours.
                   </p>
-                  <p className="text-[11px] text-slate-400 italic">
+                  <p className="text-base md:text-lg text-slate-600 italic font-bold border-l-4 border-[#ff7043] pl-3">
                     *Please note: All initial digital proposals are formal calculations subject to a standard on-site physical structural inspection.
                   </p>
                 </div>
 
-                <p className="text-xs text-slate-500 italic mt-2">
-                  Our coordinator (Mr/Ms {activeStateRecord.coordinator}) will follow up via phone call at <strong className="text-[#092641]">{successLead.phone}</strong> shortly to answer any timeline questions.
+                <p className="text-base md:text-lg text-slate-700 font-semibold mt-4">
+                  Our coordinator (Mr. Christopher Clowers) will follow up via phone call at <strong className="text-[#092641]">{successLead.phone}</strong> shortly to answer any timeline questions.
                 </p>
 
-                <button onClick={resetLeadForm} className="w-full bg-[#092641] hover:bg-[#1e3a5f] text-white py-3 rounded-lg text-sm font-extrabold shadow transition mt-2" style={{ minHeight: '44px' }}>
+                <button onClick={resetLeadForm} className="w-full bg-[#092641] hover:bg-[#1e3a5f] text-white py-4 rounded-lg text-base font-extrabold shadow transition mt-4" style={{ minHeight: '44px' }}>
                   Valuate Another Home
                 </button>
               </div>
@@ -500,38 +500,38 @@ export default function HomePage() {
 
       <section id="how-it-works" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto space-y-4">
-            <h2 className="text-3xl md:text-4xl font-serif font-black text-[#092641]">How the Nigel Buys Houses Process Works</h2>
-            <p className="text-slate-600 font-light">We took real estate out of the dark ages. Here is our 3-step lead process, designed to provide transparent choices for your timeline and goals.</p>
+          <div className="text-center max-w-4xl mx-auto space-y-6">
+            <h2 className="text-3xl md:text-5xl font-serif font-black text-[#092641]">How the Nigel Buys Houses Process Works</h2>
+            <p className="text-slate-600 font-normal text-lg md:text-xl">We took real estate out of the dark ages. Here is our 3-step lead process, designed to provide transparent choices for your timeline and goals.</p>
           </div>
 
           <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="bg-[#f8fafc] rounded-2xl p-8 border border-slate-100 relative group hover:shadow-lg transition">
-              <div className="absolute top-0 right-8 translate-y-[-50%] bg-[#ff7043] text-white font-serif font-bold text-lg pt-1 pb-1.5 px-3.5 rounded-full inline-block">1</div>
-              <div className="text-[#ff7043] bg-white p-3 rounded-xl shadow inline-block mb-6"><ClipboardList className="h-6 w-6 stroke-2" /></div>
-              <h3 className="text-xl font-bold font-serif mb-2 text-[#092641]">Tell Us About Your Home</h3>
-              <p className="text-slate-500 text-sm font-light leading-relaxed">Fill out the quick valuation form above, or call our 24/7 coordinator line. It is easy, completely free, and carries zero obligation.</p>
+              <div className="absolute top-0 right-8 translate-y-[-50%] bg-[#ff7043] text-white font-serif font-bold text-xl pt-1 pb-1.5 px-4 rounded-full inline-block">1</div>
+              <div className="text-[#ff7043] bg-white p-4 rounded-xl shadow inline-block mb-6"><ClipboardList className="h-8 w-8 stroke-2" /></div>
+              <h3 className="text-2xl font-bold font-serif mb-3 text-[#092641]">Tell Us About Your Home</h3>
+              <p className="text-slate-600 text-base md:text-lg font-normal leading-relaxed">Fill out the quick valuation form above, or call our 24/7 coordinator line. It is easy, completely free, and carries zero obligation.</p>
             </div>
 
             <div className="bg-[#f8fafc] rounded-2xl p-8 border border-slate-100 relative group hover:shadow-lg transition">
-              <div className="absolute top-0 right-8 translate-y-[-50%] bg-[#ff7043] text-white font-serif font-bold text-lg pt-1 pb-1.5 px-3.5 rounded-full inline-block">2</div>
-              <div className="text-[#ff7043] bg-white p-3 rounded-xl shadow inline-block mb-6"><TrendingUp className="h-6 w-6 stroke-2" /></div>
-              <h3 className="text-xl font-bold font-serif mb-2 text-[#092641]">Review Your Buy Options</h3>
-              <p className="text-slate-500 text-sm font-light leading-relaxed">We present two concrete choices: A fast cash buyout quote directly from us, or our popular facilitated retail list program targeting top value.</p>
+              <div className="absolute top-0 right-8 translate-y-[-50%] bg-[#ff7043] text-white font-serif font-bold text-xl pt-1 pb-1.5 px-4 rounded-full inline-block">2</div>
+              <div className="text-[#ff7043] bg-white p-4 rounded-xl shadow inline-block mb-6"><TrendingUp className="h-8 w-8 stroke-2" /></div>
+              <h3 className="text-2xl font-bold font-serif mb-3 text-[#092641]">Review Your Buy Options</h3>
+              <p className="text-slate-600 text-base md:text-lg font-normal leading-relaxed">We present two concrete choices: A fast cash buyout quote directly from us, or our popular facilitated retail list program targeting top value.</p>
             </div>
 
             <div className="bg-[#f8fafc] rounded-2xl p-8 border border-slate-100 relative group hover:shadow-lg transition">
-              <div className="absolute top-0 right-8 translate-y-[-50%] bg-[#ff7043] text-white font-serif font-bold text-lg pt-1 pb-1.5 px-3.5 rounded-full inline-block">3</div>
-              <div className="text-[#ff7043] bg-white p-3 rounded-xl shadow inline-block mb-6"><DollarSign className="h-6 w-6 stroke-2" /></div>
-              <h3 className="text-xl font-bold font-serif mb-2 text-[#092641]">Close on Your Schedule</h3>
-              <p className="text-slate-500 text-sm font-light leading-relaxed">If you accept our buy proposal, select your target closing date. You get paid in 10-14 days. We handle paperwork, cleanup, and closing costs.</p>
+              <div className="absolute top-0 right-8 translate-y-[-50%] bg-[#ff7043] text-white font-serif font-bold text-xl pt-1 pb-1.5 px-4 rounded-full inline-block">3</div>
+              <div className="text-[#ff7043] bg-white p-4 rounded-xl shadow inline-block mb-6"><DollarSign className="h-8 w-8 stroke-2" /></div>
+              <h3 className="text-2xl font-bold font-serif mb-3 text-[#092641]">Close on Your Schedule</h3>
+              <p className="text-slate-600 text-base md:text-lg font-normal leading-relaxed">If you accept our buy proposal, select your target closing date. You get paid in 10-14 days. We handle paperwork, cleanup, and closing costs.</p>
             </div>
           </div>
 
           <div className="mt-12 text-center">
-            <a href="#sticky-callout" className="inline-flex items-center space-x-2 bg-[#092641] hover:bg-[#1e3a5f] text-white py-3.5 px-8 rounded-full font-serif font-bold shadow-md transition">
+            <a href="#sticky-callout" className="inline-flex items-center space-x-2 bg-[#092641] hover:bg-[#1e3a5f] text-white py-4 px-10 rounded-full font-serif font-bold text-lg shadow-md transition">
               <span>Get Started &mdash; Fill Valuation Form</span>
-              <ChevronRight className="h-5 w-5" />
+              <ChevronRight className="h-6 w-6" />
             </a>
           </div>
         </div>
@@ -578,82 +578,82 @@ export default function HomePage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl p-6 md:p-10 shadow-lg border border-[#ced1d5]/40 max-w-5xl mx-auto">
-            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between border-b border-slate-100 pb-6 mb-8 gap-4">
-              <div className="space-y-1">
-                <span className="text-xs font-extrabold text-[#ff7043] uppercase tracking-widest flex items-center"><Calculator className="h-4 w-4 mr-1" />Lead Equity Tool</span>
-                <h3 className="text-xl md:text-2xl font-serif font-black text-[#092641]">Interactive Net Payout Calculator</h3>
-                <p className="text-slate-500 text-xs font-light">Input your home values to contrast direct payout vs brokerage expenses.</p>
+          <div className="bg-white rounded-3xl p-8 md:p-12 shadow-2xl border-2 border-[#ced1d5]/40 max-w-5xl mx-auto">
+            <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between border-b border-slate-200 pb-8 mb-10 gap-6">
+              <div className="space-y-2">
+                <span className="text-sm font-black text-[#ff7043] uppercase tracking-widest flex items-center"><Calculator className="h-5 w-5 mr-2" />Lead Equity Tool</span>
+                <h3 className="text-2xl md:text-3xl font-serif font-black text-[#092641]">Interactive Net Payout Calculator</h3>
+                <p className="text-slate-500 text-base md:text-lg font-medium">Input your home values to contrast direct payout vs brokerage expenses.</p>
               </div>
 
-              <div className="w-full lg:w-96 text-left space-y-1">
-                <div className="flex justify-between text-sm font-bold text-[#092641]">
+              <div className="w-full lg:w-96 text-left space-y-2">
+                <div className="flex justify-between text-base font-bold text-[#092641]">
                   <span>Property Fair Value:</span>
                   <span className="text-[#ff7043]">${(houseValue).toLocaleString()}</span>
                 </div>
-                <input type="range" min="50000" max="1000000" step="10000" value={houseValue} onChange={(e) => setHouseValue(parseInt(e.target.value))} className="w-full h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-[#ff7043]" />
-                <div className="flex justify-between text-[10px] text-slate-400">
+                <input type="range" min="50000" max="1000000" step="10000" value={houseValue} onChange={(e) => setHouseValue(parseInt(e.target.value))} className="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-[#ff7043]" />
+                <div className="flex justify-between text-xs text-slate-500 font-bold">
                   <span>$50,000</span>
                   <span>$1,000,000</span>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-              <div className="lg:col-span-4 space-y-4">
-                <h4 className="text-xs font-extrabold uppercase text-[#092641] tracking-wider mb-2">Estimated Traditional Expenses</h4>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+              <div className="lg:col-span-4 space-y-5">
+                <h4 className="text-sm font-extrabold uppercase text-[#092641] tracking-wider mb-3">Estimated Traditional Expenses</h4>
                 
                 <div>
-                  <label className="block text-xs font-bold text-slate-700 mb-1">Estimated Necessary Repairs ($)</label>
-                  <input type="number" value={repairEstimate} onChange={(e) => setRepairEstimate(Math.max(0, parseInt(e.target.value) || 0))} className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:border-[#ff7043] focus:outline-none" />
+                  <label className="block text-sm font-bold text-slate-700 mb-1.5">Estimated Necessary Repairs ($)</label>
+                  <input type="number" value={repairEstimate} onChange={(e) => setRepairEstimate(Math.max(0, parseInt(e.target.value) || 0))} className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl text-base font-bold focus:border-[#ff7043] focus:outline-none" />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">MLS Broker Commission (%)</label>
-                    <input type="number" value={agentCommissionPct} onChange={(e) => setAgentCommissionPct(Math.max(0, parseFloat(e.target.value) || 0))} className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:border-[#ff7043] focus:outline-none" />
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">MLS Broker Commission (%)</label>
+                    <input type="number" value={agentCommissionPct} onChange={(e) => setAgentCommissionPct(Math.max(0, parseFloat(e.target.value) || 0))} className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl text-base font-bold focus:border-[#ff7043] focus:outline-none" />
                   </div>
                   <div>
-                    <label className="block text-xs font-bold text-slate-700 mb-1">Standard Close Fees (%)</label>
-                    <input type="number" value={closingCostsPct} onChange={(e) => setClosingCostsPct(Math.max(0, parseFloat(e.target.value) || 0))} className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm focus:border-[#ff7043] focus:outline-none" />
+                    <label className="block text-sm font-bold text-slate-700 mb-1.5">Standard Close Fees (%)</label>
+                    <input type="number" value={closingCostsPct} onChange={(e) => setClosingCostsPct(Math.max(0, parseFloat(e.target.value) || 0))} className="w-full px-4 py-3 border-2 border-slate-300 rounded-xl text-base font-bold focus:border-[#ff7043] focus:outline-none" />
                   </div>
                 </div>
 
-                <div className="bg-[#f8fafc] p-3 rounded-lg border border-slate-100 text-[11px] text-slate-500 leading-relaxed">
-                  💡 <strong>Traditional holding fee:</strong> Traditional listing can take 3 to 6 months. Taxes, insurance, and mortgage during wait average around <strong>2%</strong> of home values.
+                <div className="bg-[#f8fafc] p-4 rounded-lg border border-slate-200 text-sm md:text-base text-slate-600 leading-relaxed font-medium">
+                  💡 <strong className="text-slate-800">Traditional holding fee:</strong> Traditional listing can take 3 to 6 months. Taxes, insurance, and mortgage during wait average around <strong>2%</strong> of home values.
                 </div>
               </div>
 
-              <div className="lg:col-span-8 bg-slate-900 text-white rounded-xl p-6 relative overflow-hidden">
-                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(255,112,67,0.1),transparent_60%)]" />
-                <h4 className="text-xs font-extrabold uppercase text-[#ff7043] tracking-widest mb-4">Estimated Net Payout Comparison</h4>
+              <div className="lg:col-span-8 bg-slate-900 text-white rounded-2xl p-8 relative overflow-hidden shadow-inner">
+                <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(255,112,67,0.15),transparent_60%)]" />
+                <h4 className="text-sm font-black uppercase text-[#ff7043] tracking-widest mb-6">Estimated Net Payout Comparison</h4>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
-                  <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 text-center">
-                    <span className="block text-[10px] text-slate-400 font-bold uppercase">Direct Cash buyout</span>
-                    <span className="block text-xl font-bold mt-1 text-[#ff7043]">${cashOfferValue.toLocaleString()}</span>
-                    <span className="block text-[11px] text-emerald-400 font-bold mt-2">Zero broker fees</span>
-                    <span className="block text-[10px] text-slate-400 mt-0.5">As-is, close in 14 days</span>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-5 relative z-10">
+                  <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl p-5 text-center flex flex-col justify-center">
+                    <span className="block text-xs text-slate-400 font-bold uppercase tracking-wider">Direct Cash buyout</span>
+                    <span className="block text-2xl md:text-3xl font-black mt-2 text-[#ff7043]">${cashOfferValue.toLocaleString()}</span>
+                    <span className="block text-sm text-emerald-400 font-extrabold mt-3">Zero broker fees</span>
+                    <span className="block text-xs text-slate-300 mt-1 font-medium">As-is, close in 14 days</span>
                   </div>
 
-                  <div className="bg-[#213d55]/80 border border-[#ff7043]/30 rounded-xl p-4 text-center ring-2 ring-[#ff7043]/30">
-                    <span className="block text-[10px] text-slate-300 font-bold uppercase">"Almost Retail" Option</span>
-                    <span className="block text-xl font-black mt-1 text-green-400">${partnerNetPayout.toLocaleString()}</span>
-                    <span className="block text-[11px] text-green-400 font-bold mt-2">Maximum Payout</span>
-                    <span className="block text-[10px] text-slate-300 mt-0.5">We handle upfront inquiries</span>
+                  <div className="bg-[#213d55]/80 border-2 border-[#ff7043]/40 rounded-xl p-5 text-center flex flex-col justify-center ring-4 ring-[#ff7043]/20 transform scale-105 shadow-xl">
+                    <span className="block text-xs text-slate-200 font-bold uppercase tracking-wider">"Almost Retail" Option</span>
+                    <span className="block text-2xl md:text-3xl font-black mt-2 text-green-400">${partnerNetPayout.toLocaleString()}</span>
+                    <span className="block text-sm text-green-400 font-extrabold mt-3">Maximum Payout</span>
+                    <span className="block text-xs text-slate-200 mt-1 font-medium">We handle upfront inquiries</span>
                   </div>
 
-                  <div className="bg-slate-800/80 border border-slate-700 rounded-xl p-4 text-center">
-                    <span className="block text-[10px] text-slate-400 font-bold uppercase">Traditional MLS List</span>
-                    <span className="block text-xl font-bold mt-1 text-slate-300">${traditionalNetPayout.toLocaleString()}</span>
-                    <span className="block text-[11px] text-red-400 font-bold mt-2">-${(traditionalCommission + traditionalClosingCosts + traditionalRepairs + traditionalHoldingCosts).toLocaleString()} fees</span>
-                    <span className="block text-[10px] text-slate-400 mt-0.5">Take 3-6 months to close</span>
+                  <div className="bg-slate-800/80 border-2 border-slate-700 rounded-xl p-5 text-center flex flex-col justify-center">
+                    <span className="block text-xs text-slate-400 font-bold uppercase tracking-wider">Traditional MLS List</span>
+                    <span className="block text-2xl md:text-3xl font-bold mt-2 text-slate-300">${traditionalNetPayout.toLocaleString()}</span>
+                    <span className="block text-sm text-red-400 font-extrabold mt-3">-${(traditionalCommission + traditionalClosingCosts + traditionalRepairs + traditionalHoldingCosts).toLocaleString()} fees</span>
+                    <span className="block text-xs text-slate-300 mt-1 font-medium">Take 3-6 months to close</span>
                   </div>
                 </div>
 
-                <div className="mt-6 pt-4 border-t border-slate-800 text-xs text-slate-400 flex items-center justify-between">
+                <div className="mt-8 pt-5 border-t border-slate-700 text-sm text-slate-400 flex items-center justify-between font-medium">
                   <span>Estimates calculated securely. No credit check required.</span>
-                  <a href="#sticky-callout" className="text-[#ff7043] font-bold hover:underline">Apply to locking offer &rarr;</a>
+                  <a href="#sticky-callout" className="text-[#ff7043] font-black hover:underline flex items-center">Apply to lock offer <ArrowRight className="h-4 w-4 ml-1" /></a>
                 </div>
               </div>
             </div>
@@ -812,7 +812,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-12 gap-10">
           <div className="md:col-span-8 space-y-4">
             <div className="flex items-center space-x-2.5">
-              <img src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" alt="Nigel Buys Houses Logo" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
+              <img src="https://github.com/ssuuppeerrmmaann/Nigel-Buys-Houses/blob/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" alt="Nigel Buys Houses Logo" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
               <span className="font-serif font-black text-[#092641] text-lg">Nigel Buys Houses</span>
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed max-w-2xl">&copy; {new Date().getFullYear()} Nigel Buys Houses. Powered by certified local underwriters. Subject to active local guidelines. All home valuations are estimates based on accessible public registry records. This website replicates state operations showing options with high-fidelity performance.</p>
