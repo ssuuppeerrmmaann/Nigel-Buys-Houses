@@ -319,7 +319,7 @@ export default function HomePage() {
 
           <div className="lg:col-span-5 bg-white rounded-2xl p-6 md:p-8 shadow-2xl text-[#092641] relative border-b-4 border-[#ff7043]">
             <div className="absolute top-0 right-6 translate-y-[-50%] bg-[#092641] text-white px-3 py-1 rounded-md text-xs font-bold uppercase tracking-wider">
-              Lead Valuation Portal
+              Free Valuation Portal
             </div>
 
             <div className="mb-6">
