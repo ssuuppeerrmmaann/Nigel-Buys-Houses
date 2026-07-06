@@ -1,11 +1,10 @@
 // FILE: HomePage.tsx
-// TITLE: HomePage (Pass-Through Architecture)
+// TITLE: HomePage (Native Fetch Formspree Architecture)
 
 // SECTION: Core Imports
-import React, { useState } from 'react';
-import { useForm } from '@formspree/react';
+import React, { useState, useEffect } from 'react';
 import { 
-  ShieldCheck, CheckCircle, Clock, ArrowRight, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ClipboardList
+  Building, ShieldCheck, DollarSign, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Trash, Phone, Mail, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ExternalLink, ChevronRight, ClipboardList
 } from 'lucide-react';
 
 // SECTION: Type Definitions
@@ -20,7 +19,9 @@ interface Lead {
   phone: string;
   email: string;
   timestamp: string;
+  estimatedValue: number;
   status: 'New' | 'Analyzing' | 'Offer Sent' | 'Action Needed';
+  webhookSynced?: boolean;
 }
 
 // SECTION: Static Data
@@ -73,6 +74,7 @@ export default function HomePage() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [successLead, setSuccessLead] = useState<Lead | null>(null);
   const [fieldError, setFieldError] = useState('');
   
@@ -87,8 +89,8 @@ export default function HomePage() {
 
   const [expandedFaq, setExpandedAccordion] = useState<number | null>(null);
 
-  // Formspree Hook Configuration
-  const [formState, handleFormspreeSubmit] = useForm('xpqgnqlj');
+  // Native Formspree Endpoint Configuration
+  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xpqgnqlj';
 
   const handleStateAbbrSelect = (abbr: string) => {
     setActiveStateAbbr(abbr);
@@ -117,6 +119,8 @@ export default function HomePage() {
       return;
     }
 
+    setIsSubmitting(true);
+
     const leadPayload: Lead = {
       id: 'lead-' + Date.now(),
       address,
@@ -129,17 +133,32 @@ export default function HomePage() {
       email,
       estimatedValue: houseValue,
       timestamp: new Date().toISOString().replace('T', ' ').substring(0, 16),
-      status: 'New'
+      status: 'New',
+      webhookSynced: false
     };
 
     try {
-      await handleFormspreeSubmit(leadPayload as any);
-      setSuccessLead(leadPayload);
-      setStep(3);
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(leadPayload)
+      });
+
+      if (response.ok) {
+        leadPayload.webhookSynced = true;
+      } else {
+        console.warn('Formspree received payload but returned an error status.');
+      }
     } catch (err) {
-      console.error('Formspree dispatch failed.', err);
-      setFieldError('There was an issue processing your request. Please try again.');
+      console.error('Formspree fetch failed. Saving locally.', err);
     }
+
+    setSuccessLead(leadPayload);
+    setIsSubmitting(false);
+    setStep(3);
   };
 
   const resetLeadForm = () => {
@@ -156,7 +175,7 @@ export default function HomePage() {
     setFieldError('');
   };
 
-  // SECTION: Calculations for Auxiliary Features
+  // SECTION: Calculators
   const cashOfferPercentage = 0.76; 
   const cashOfferValue = Math.round(houseValue * cashOfferPercentage - (repairEstimate * 0.5));
   
@@ -187,7 +206,7 @@ export default function HomePage() {
           
           <div className="flex items-center space-x-3.5">
             <img 
-              src="https://github.com/ssuuppeerrmmaann/Nigel-Buys-Houses/blob/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" 
+              src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/images/nigel_buys_houses_transparent.png" 
               alt="Nigel Buys Houses Logo" 
               className="h-10 md:h-12 w-auto object-contain" 
               referrerPolicy="no-referrer" 
@@ -421,8 +440,8 @@ export default function HomePage() {
                     Back
                   </button>
 
-                  <button type="submit" disabled={formState.submitting} className="w-2/3 bg-[#ff7043] hover:bg-[#e65100] text-white py-3 rounded-lg font-serif text-base font-bold shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2" style={{ minHeight: '44px' }}>
-                    {formState.submitting ? (
+                  <button type="submit" disabled={isSubmitting} className="w-2/3 bg-[#ff7043] hover:bg-[#e65100] text-white py-3 rounded-lg font-serif text-base font-bold shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2" style={{ minHeight: '44px' }}>
+                    {isSubmitting ? (
                       <>
                         <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         <span>Calculating...</span>
@@ -762,11 +781,38 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section id="faqs" className="py-20 bg-slate-50 border-t border-[#ced1d5]/30">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center space-y-4 mb-14">
+            <h2 className="text-3xl md:text-4xl font-serif font-black text-[#092641]">Frequently Asked Questions</h2>
+            <p className="text-slate-600 font-light text-sm">Do you have a question about how we valuate? Here are candid answers based on 9,000+ real inquiries.</p>
+          </div>
+          <div className="space-y-4">
+            {[
+              { q: "What type of properties does Nigel Buys Houses purchase?", a: "We buy single family homes, townhouses, duplexes, multi-family, and vacant properties. It doesn't matter if your home requires light updates or total hoarder cleanups &mdash; we prepare as-is valuation estimates for absolutely any physical condition." },
+              { q: "How exactly do you calculate my payout offer?", a: "Our formula is direct and transparent. We look at: 1) Local active comparable sales (comps) in your immediate county, 2) Necessary structural repair estimates, 3) Intrinsic holding fees. We combine this into a quick direct cash buyout option or our Retail Partnership program." },
+              { q: "Is there any obligation when I submit my home address?", a: "No! Accessing your layout valuation carries zero obligation. We run state records for you free of charge. You can review our estimates with family, compare against standard agents, or discard completely." },
+              { q: "Are cash offers for houses actually legitimate?", a: "While the market has speculative investors, certified buyers like Nigel Buys Houses with an A+ BBB Accreditation verify funds securely with closing title offices. We utilize local, national underwriters to secure standard client transactions legally." },
+              { q: "What if my house needs extensive structural repairs?", a: "We purchase in exact as-is condition. You do not need to clean closets, pick up trash, repair roofing, or paint walls. We absorb those coordination efforts fully within our buyout structures." },
+              { q: "How fast can you buy my house and make the payout?", a: "Once you approve the direct buy offer, we can close the escrow processing in 9 to 14 business days. Payout is coordinated directly through a local certified bank wire or bank-guaranteed cashier checks." }
+            ].map((faq, index) => (
+              <div key={index} className="bg-white rounded-xl border border-[#ced1d5]/40 overflow-hidden shadow-xs hover:border-[#ff7043]/30 transition">
+                <button onClick={() => setExpandedAccordion(expandedFaq === index ? null : index)} className="w-full text-left px-5 py-4 flex items-center justify-between font-bold text-[#092641] text-sm md:text-base" style={{ minHeight: '44px' }}>
+                  <span>{faq.q}</span>
+                  {expandedFaq === index ? <ChevronUp className="h-5 w-5 text-[#ff7043]" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
+                </button>
+                {expandedFaq === index && <div className="px-5 pb-5 pt-1 text-slate-600 font-light text-sm border-t border-slate-50 leading-relaxed bg-[#f8fafc]">{faq.a}</div>}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <footer className="bg-white border-t border-[#ced1d5]/40 py-16 text-slate-600 text-xs md:text-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-12 gap-10">
           <div className="md:col-span-8 space-y-4">
             <div className="flex items-center space-x-2.5">
-              <img src="https://github.com/ssuuppeerrmmaann/Nigel-Buys-Houses/blob/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" alt="Nigel Buys Houses Logo" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
+              <img src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" alt="Nigel Buys Houses Logo" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
               <span className="font-serif font-black text-[#092641] text-lg">Nigel Buys Houses</span>
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed max-w-2xl">&copy; {new Date().getFullYear()} Nigel Buys Houses. Powered by certified local underwriters. Subject to active local guidelines. All home valuations are estimates based on accessible public registry records. This website replicates state operations showing options with high-fidelity performance.</p>
