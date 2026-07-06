@@ -1,34 +1,11 @@
 // FILE: HomePage.tsx
-// TITLE: HomePage (Decoupled Webhook Architecture)
+// TITLE: HomePage (Logo Updates & Formspree)
 
+// SECTION: Core Imports
 import React, { useState, useEffect } from 'react';
+import { useForm } from '@formspree/react';
 import { 
-  Building, 
-  ShieldCheck, 
-  DollarSign, 
-  CheckCircle, 
-  Clock, 
-  ArrowRight, 
-  ChevronDown, 
-  ChevronUp, 
-  Star, 
-  Trash, 
-  Phone, 
-  Mail, 
-  MapPin, 
-  Menu, 
-  X, 
-  Award, 
-  Calculator, 
-  TrendingUp, 
-  Users, 
-  Lock, 
-  AlertCircle,
-  Check,
-  ThumbsUp,
-  ExternalLink,
-  ChevronRight,
-  ClipboardList
+  Building, ShieldCheck, DollarSign, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Trash, Phone, Mail, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ExternalLink, ChevronRight, ClipboardList
 } from 'lucide-react';
 
 // SECTION: Type Definitions
@@ -86,10 +63,8 @@ const STATE_RECORDS = [
 
 // SECTION: Main Component
 export default function HomePage() {
-  // Navigation states
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
-  // Interactive Wizard Leads states
   const [step, setStep] = useState(1);
   const [address, setAddress] = useState('');
   const [city, setCity] = useState('');
@@ -100,34 +75,27 @@ export default function HomePage() {
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   
-  // Validation and process tracking
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [successLead, setSuccessLead] = useState<Lead | null>(null);
   const [fieldError, setFieldError] = useState('');
   
-  // Interactive Map states
   const [mapSearch, setMapSearch] = useState('');
   const [activeStateAbbr, setActiveStateAbbr] = useState('FL');
   const [activeStateRecord, setActiveStateRecord] = useState(STATE_RECORDS.find(s => s.abbr === 'FL')!);
 
-  // Cost calculator variables
   const [houseValue, setHouseValue] = useState(250000);
   const [agentCommissionPct, setAgentCommissionPct] = useState(6);
   const [closingCostsPct, setClosingCostsPct] = useState(2);
   const [repairEstimate, setRepairEstimate] = useState(15000);
 
-  // UI States
   const [expandedFaq, setExpandedAccordion] = useState<number | null>(null);
   const [leadsDb, setLeadsDb] = useState<Lead[]>([]);
   const [adminOpen, setAdminOpen] = useState(false);
   const [adminSearch, setAdminOpenSearch] = useState('');
 
-  // Make.com Webhook URL (Replace this string with your actual Make webhook URL)
-  const MAKE_WEBHOOK_URL = 'YOUR_MAKE_WEBHOOK_URL_HERE';
+  // Formspree Hook Configuration
+  const [formState, handleFormspreeSubmit] = useForm('xpqgnqlj');
 
-  // SECTION: Lifecycle & Effects
   useEffect(() => {
-    // Load cached leads from local storage for testing viewer
     const saved = localStorage.getItem('fair_simple_leads');
     if (saved) {
       try {
@@ -170,8 +138,6 @@ export default function HomePage() {
       return;
     }
 
-    setIsSubmitting(true);
-
     const leadPayload: Lead = {
       id: 'lead-' + Date.now(),
       address,
@@ -189,27 +155,15 @@ export default function HomePage() {
     };
 
     try {
-      // Push directly to Make.com Webhook
-      const response = await fetch(MAKE_WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(leadPayload)
-      });
-
-      if (response.ok) {
-        leadPayload.webhookSynced = true;
-      } else {
-        console.warn('Webhook received payload but returned an error status.');
-      }
+      await handleFormspreeSubmit(leadPayload as any);
+      leadPayload.webhookSynced = true;
     } catch (err) {
-      console.error('Webhook fetch failed. Saving locally.', err);
+      console.error('Formspree fetch failed. Saving locally.', err);
     }
 
-    // Always save to local state regardless of webhook success so the user proceeds
     const updatedDb = [leadPayload, ...leadsDb];
     saveLeadsToStorage(updatedDb);
     setSuccessLead(leadPayload);
-    setIsSubmitting(false);
     setStep(3);
   };
 
@@ -227,7 +181,6 @@ export default function HomePage() {
     setFieldError('');
   };
 
-  // SECTION: Admin Actions (Local Only)
   const handleDeleteLead = (id: string) => {
     if (confirm('Are you sure you want to remove this lead record locally?')) {
       const updated = leadsDb.filter(l => l.id !== id);
@@ -256,21 +209,19 @@ export default function HomePage() {
   return (
     <div className="min-h-screen flex flex-col font-sans transition-colors duration-300">
       
-      {/* 24-HOUR ADVISORY/BANNER ON TOP */}
       <div id="sticky-callout" className="bg-[#ff7043] text-white py-3 px-5 text-center text-sm md:text-base font-bold tracking-wide shadow-sm z-50">
         <span className="inline-block bg-white/20 px-2.5 py-1 rounded text-xs uppercase mr-2 animate-pulse">⏰ Live Alert</span>
         Nationwide coverage update: We currently buy in <strong className="font-bold underline text-white">32 states</strong>! Avoid real estate commission fees by about 10%
       </div>
 
-      {/* HEADER SECTION */}
       <header className="bg-white border-b border-[#ced1d5]/40 sticky top-0 z-40 transform transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
           
           <div className="flex items-center space-x-3.5">
             <img 
-              src="https://github.com/ssuuppeerrmmaann/Nigel-Buys-Houses/blob/main/assets/images/nigel_buys_houses_white.png?raw=true" 
+              src="https://github.com/ssuuppeerrmmaann/Nigel-Buys-Houses/blob/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" 
               alt="Nigel Buys Houses Logo" 
-              className="h-10 md:h-12 w-auto object-contain bg-[#092641] rounded" 
+              className="h-10 md:h-12 w-auto object-contain" 
               referrerPolicy="no-referrer" 
             />
             <div>
@@ -328,7 +279,6 @@ export default function HomePage() {
         )}
       </header>
 
-      {/* HERO SECTION */}
       <section className="relative bg-slate-900 text-white overflow-hidden py-14 lg:py-24">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,rgba(255,112,67,0.15),transparent_60%)] pointer-events-none" />
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-905 to-transparent pointer-events-none" />
@@ -503,8 +453,8 @@ export default function HomePage() {
                     Back
                   </button>
 
-                  <button type="submit" disabled={isSubmitting} className="w-2/3 bg-[#ff7043] hover:bg-[#e65100] text-white py-3 rounded-lg font-serif text-base font-bold shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2" style={{ minHeight: '44px' }}>
-                    {isSubmitting ? (
+                  <button type="submit" disabled={formState.submitting} className="w-2/3 bg-[#ff7043] hover:bg-[#e65100] text-white py-3 rounded-lg font-serif text-base font-bold shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2" style={{ minHeight: '44px' }}>
+                    {formState.submitting ? (
                       <>
                         <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                         <span>Calculating...</span>
@@ -561,7 +511,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* THREE SIMPLE STEPS SECTION */}
       <section id="how-it-works" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-4">
@@ -601,7 +550,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CORE FEATURE: DETAILED APP WORK OFFER COMPARISON */}
       <section id="compare" className="py-20 bg-slate-50 border-y border-[#ced1d5]/30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
@@ -726,7 +674,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CORE FEATURE: DYNAMIC STATE COORDINATOR TESTIMONIAL FINDER */}
       <section id="coverage" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
@@ -815,7 +762,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* CORE VALUE & TRUST SECTION */}
       <section id="trust" className="py-20 bg-slate-900 text-white relative">
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_left,rgba(255,112,67,0.1),transparent_60%)] pointer-events-none" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -848,7 +794,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FREQUENTLY ASKED QUESTIONS */}
       <section id="faqs" className="py-20 bg-slate-50 border-t border-[#ced1d5]/30">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center space-y-4 mb-14">
@@ -876,12 +821,11 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* FOOTER & TRUST BANNER SECTION */}
       <footer className="bg-white border-t border-[#ced1d5]/40 py-16 text-slate-600 text-xs md:text-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-12 gap-10">
           <div className="md:col-span-6 space-y-4">
             <div className="flex items-center space-x-2.5">
-              <img src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/logos/nigel_buys_houses_transparent.png" alt="Nigel Buys Houses Logo" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
+              <img src="https://github.com/ssuuppeerrmmaann/Nigel-Buys-Houses/blob/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" alt="Nigel Buys Houses Logo" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
               <span className="font-serif font-black text-[#092641] text-lg">Nigel Buys Houses</span>
             </div>
             <p className="text-[11px] text-slate-400 leading-relaxed">&copy; {new Date().getFullYear()} Nigel Buys Houses. Powered by certified local underwriters. Subject to active local guidelines. All home valuations are estimates based on accessible public registry records. This website replicates state operations showing options with high-fidelity performance.</p>
@@ -913,7 +857,6 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* DYNAMIC LEADS VIEWER PORTAL MODAL */}
       {adminOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-2xl w-full max-w-4xl shadow-2xl overflow-hidden text-[#092641] flex flex-col max-h-[90vh]">
@@ -972,7 +915,7 @@ export default function HomePage() {
                         <p className="text-slate-500 mt-0.5">{lead.timestamp}</p>
                         <p className={`text-[10px] font-semibold mt-1 flex items-center ${lead.webhookSynced ? 'text-green-600' : 'text-amber-600'}`}>
                           <span className={`inline-block h-2 w-2 rounded-full mr-1 ${lead.webhookSynced ? 'bg-green-500' : 'bg-amber-500'}`} />
-                          {lead.webhookSynced ? 'Webhook Pushed' : 'Webhook Failed'}
+                          {lead.webhookSynced ? 'Formspree Pushed' : 'Formspree Failed'}
                         </p>
                       </div>
                       <div className="flex flex-col justify-end space-y-1.5">
@@ -994,7 +937,7 @@ export default function HomePage() {
             </div>
 
             <div className="bg-slate-50 p-4 border-t border-slate-100 flex justify-between items-center text-xs">
-              <span className="text-slate-400">Leads displayed are cached locally. Backend processing handled via Make.com Webhook.</span>
+              <span className="text-slate-400">Leads displayed are cached locally. Backend processing handled via Formspree Endpoint.</span>
               <button onClick={() => setAdminOpen(false)} className="bg-[#092641] text-white hover:bg-slate-800 px-5 py-2 rounded font-bold" style={{ minHeight: '36px' }}>
                 Close View
               </button>
