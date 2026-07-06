@@ -1,11 +1,11 @@
 // FILE: HomePage.tsx
-// TITLE: HomePage (Lean Formspree Architecture)
+// TITLE: HomePage (Pass-Through Architecture)
 
 // SECTION: Core Imports
 import React, { useState } from 'react';
 import { useForm } from '@formspree/react';
 import { 
-  Building, ShieldCheck, DollarSign, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList
+  ShieldCheck, CheckCircle, Clock, ArrowRight, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ClipboardList
 } from 'lucide-react';
 
 // SECTION: Type Definitions
@@ -20,9 +20,7 @@ interface Lead {
   phone: string;
   email: string;
   timestamp: string;
-  estimatedValue: number;
   status: 'New' | 'Analyzing' | 'Offer Sent' | 'Action Needed';
-  webhookSynced?: boolean;
 }
 
 // SECTION: Static Data
@@ -158,7 +156,7 @@ export default function HomePage() {
     setFieldError('');
   };
 
-  // SECTION: Calculators
+  // SECTION: Calculations for Auxiliary Features
   const cashOfferPercentage = 0.76; 
   const cashOfferValue = Math.round(houseValue * cashOfferPercentage - (repairEstimate * 0.5));
   
@@ -442,31 +440,31 @@ export default function HomePage() {
 
             {step === 3 && successLead && (
               <div className="space-y-4 text-center">
-                <div className="bg-emerald-50 text-emerald-800 p-4 rounded-xl border border-emerald-200 inline-block mb-2">
+                <div className="bg-emerald-50 text-emerald-800 p-5 rounded-xl border border-emerald-200 inline-block my-2">
                   <CheckCircle className="h-10 w-10 text-emerald-500 mx-auto mb-2" />
-                  <h4 className="font-serif font-black text-[#092641] text-lg">Analysis Complete!</h4>
-                  <p className="text-xs text-emerald-700 mt-1">We found active buyers in <strong>{successLead.state}</strong>!</p>
+                  <h4 className="font-serif font-black text-[#092641] text-lg">Information Securely Received!</h4>
+                  <p className="text-sm text-slate-700 mt-2 leading-relaxed">
+                    Thank you, <strong className="font-bold">{successLead.firstName}</strong>. Your property coordinates for <strong className="underline">{successLead.address}</strong> have been logged into our pipeline.
+                  </p>
                 </div>
 
-                <div className="space-y-3.5 text-left border-y border-slate-100 py-4 my-2">
-                  <div className="bg-[#f8fafc] p-3.5 rounded-lg border border-slate-100">
-                    <p className="text-[10px] uppercase font-bold text-slate-400">1. Instant Cash Purchase Option</p>
-                    <p className="text-xl font-serif font-black text-[#ff7043] mt-0.5">${(cashOfferValue).toLocaleString()}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">As-is condition buyout. Close details in 10-14 days. Zero broker commissions.</p>
-                  </div>
-
-                  <div className="bg-emerald-50/50 p-3.5 rounded-lg border border-emerald-100">
-                    <p className="text-[10px] uppercase font-bold text-slate-400">2. "Almost Retail" Program Maximum Equity</p>
-                    <p className="text-lg font-black text-emerald-700 mt-0.5">${(partnerNetPayout).toLocaleString()}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">List utilizing our localized trained buyer partners. Payout is closer to full market values.</p>
-                  </div>
+                <div className="bg-slate-50 p-5 rounded-xl border border-slate-200 text-left space-y-3">
+                  <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                    Our team is currently evaluating your local county assessor data. Instead of generating a generic, automated estimate, a regional coordinator is performing a custom valuation.
+                  </p>
+                  <p className="text-xs text-slate-600 leading-relaxed font-bold text-emerald-700">
+                    🚀 A formal, itemized written proposal is being drafted and will be sent to your email address: {successLead.email} within 24 business hours.
+                  </p>
+                  <p className="text-[11px] text-slate-400 italic">
+                    *Please note: All initial digital proposals are formal calculations subject to a standard on-site physical structural inspection.
+                  </p>
                 </div>
 
-                <p className="text-xs text-slate-500 italic">
-                  *A local coordinator (Mr/Ms {activeStateRecord.coordinator}) has received this record for {successLead.address}. They will call you at <strong className="text-[#092641]">{successLead.phone}</strong> shortly to review physical condition!
+                <p className="text-xs text-slate-500 italic mt-2">
+                  Our coordinator (Mr/Ms {activeStateRecord.coordinator}) will follow up via phone call at <strong className="text-[#092641]">{successLead.phone}</strong> shortly to answer any timeline questions.
                 </p>
 
-                <button onClick={resetLeadForm} className="w-full bg-[#092641] hover:bg-[#1e3a5f] text-white py-3 rounded-lg text-sm font-extrabold shadow transition" style={{ minHeight: '44px' }}>
+                <button onClick={resetLeadForm} className="w-full bg-[#092641] hover:bg-[#1e3a5f] text-white py-3 rounded-lg text-sm font-extrabold shadow transition mt-2" style={{ minHeight: '44px' }}>
                   Valuate Another Home
                 </button>
               </div>
@@ -760,33 +758,6 @@ export default function HomePage() {
               </div>
               <div className="mt-6 text-center text-[10px] text-slate-500 italic">A+ BBB Rated Real Estate Investor standard representation code.</div>
             </div>
-          </div>
-        </div>
-      </section>
-
-      <section id="faqs" className="py-20 bg-slate-50 border-t border-[#ced1d5]/30">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center space-y-4 mb-14">
-            <h2 className="text-3xl md:text-4xl font-serif font-black text-[#092641]">Frequently Asked Questions</h2>
-            <p className="text-slate-600 font-light text-sm">Do you have a question about how we valuate? Here are candid answers based on 9,000+ real inquiries.</p>
-          </div>
-          <div className="space-y-4">
-            {[
-              { q: "What type of properties does Nigel Buys Houses purchase?", a: "We buy single family homes, townhouses, duplexes, multi-family, and vacant properties. It doesn't matter if your home requires light updates or total hoarder cleanups &mdash; we prepare as-is valuation estimates for absolutely any physical condition." },
-              { q: "How exactly do you calculate my payout offer?", a: "Our formula is direct and transparent. We look at: 1) Local active comparable sales (comps) in your immediate county, 2) Necessary structural repair estimates, 3) Intrinsic holding fees. We combine this into a quick direct cash buyout option or our Retail Partnership program." },
-              { q: "Is there any obligation when I submit my home address?", a: "No! Accessing your layout valuation carries zero obligation. We run state records for you free of charge. You can review our estimates with family, compare against standard agents, or discard completely." },
-              { q: "Are cash offers for houses actually legitimate?", a: "While the market has speculative investors, certified buyers like Nigel Buys Houses with an A+ BBB Accreditation verify funds securely with closing title offices. We utilize local, national underwriters to secure standard client transactions legally." },
-              { q: "What if my house needs extensive structural repairs?", a: "We purchase in exact as-is condition. You do not need to clean closets, pick up trash, repair roofing, or paint walls. We absorb those coordination efforts fully within our buyout structures." },
-              { q: "How fast can you buy my house and make the payout?", a: "Once you approve the direct buy offer, we can close the escrow processing in 9 to 14 business days. Payout is coordinated directly through a local certified bank wire or bank-guaranteed cashier checks." }
-            ].map((faq, index) => (
-              <div key={index} className="bg-white rounded-xl border border-[#ced1d5]/40 overflow-hidden shadow-xs hover:border-[#ff7043]/30 transition">
-                <button onClick={() => setExpandedAccordion(expandedFaq === index ? null : index)} className="w-full text-left px-5 py-4 flex items-center justify-between font-bold text-[#092641] text-sm md:text-base" style={{ minHeight: '44px' }}>
-                  <span>{faq.q}</span>
-                  {expandedFaq === index ? <ChevronUp className="h-5 w-5 text-[#ff7043]" /> : <ChevronDown className="h-5 w-5 text-slate-400" />}
-                </button>
-                {expandedFaq === index && <div className="px-5 pb-5 pt-1 text-slate-600 font-light text-sm border-t border-slate-50 leading-relaxed bg-[#f8fafc]">{faq.a}</div>}
-              </div>
-            ))}
           </div>
         </div>
       </section>
