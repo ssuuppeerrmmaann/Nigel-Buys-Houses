@@ -1,12 +1,12 @@
 // FILE: MarketPage.tsx
-// TITLE: MarketPage (Dynamic Localization Architecture)
+// TITLE: MarketPage (Dynamic Dictionary Filter Architecture)
 
 // SECTION: Core Imports
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useForm } from '@formspree/react';
 import { 
-  ShieldCheck, CheckCircle, Clock, ArrowRight, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList
+  ShieldCheck, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList, Trash
 } from 'lucide-react';
 
 // SECTION: Type Definitions
@@ -72,14 +72,42 @@ export default function MarketPage() {
   // Extract dynamic parameters from React Router
   const { stateId, cityId } = useParams();
   
-  // Format local variables based on URL
-  const formattedState = stateId ? capitalizeWords(stateId) : 'Florida';
-  const formattedCity = cityId ? capitalizeWords(cityId) : '';
-  const heroLocation = cityId ? formattedCity : formattedState;
-  const inLocationText = cityId ? `in ${formattedCity}` : `in ${formattedState}`;
+  // 1. Clean the raw URL strings
+  const cleanParam1 = stateId ? capitalizeWords(stateId) : '';
+  const cleanParam2 = cityId ? capitalizeWords(cityId) : '';
 
-  const activeRecord = STATE_RECORDS.find(s => s.name.toLowerCase() === formattedState.toLowerCase());
-  const stateAbbr = activeRecord ? activeRecord.abbr : formattedState.substring(0, 2).toUpperCase();
+  // 2. Dictionary Filter: Check if param 1 is actually a known 50 US state
+  const knownStateRecord = STATE_RECORDS.find(s => s.name.toLowerCase() === cleanParam1.toLowerCase());
+
+  let formattedState = '';
+  let formattedCity = '';
+  let stateAbbr = 'US';
+  let activeRecord = knownStateRecord;
+
+  if (cleanParam2) {
+    // Scenario A: /florida/orlando (State + City)
+    formattedState = cleanParam1;
+    formattedCity = cleanParam2;
+    stateAbbr = knownStateRecord ? knownStateRecord.abbr : cleanParam1.substring(0, 2).toUpperCase();
+  } else if (knownStateRecord) {
+    // Scenario B: /florida (State Only)
+    formattedState = knownStateRecord.name;
+    formattedCity = ''; 
+    stateAbbr = knownStateRecord.abbr;
+  } else if (cleanParam1) {
+    // Scenario C: /springfield (City Only - it failed the dictionary match)
+    formattedState = ''; 
+    formattedCity = cleanParam1;
+    stateAbbr = 'US'; // Generic fallback to prevent crashing the acronym UI
+    // Provide a generic fallback record for speed/ratings since state is unknown
+    activeRecord = { name: 'USA', abbr: 'US', speed: '10 days', rating: 4.8, activeBuyers: 15 };
+  }
+
+  // Construct UI targeting strings safely
+  const heroLocation = formattedCity && formattedState ? `${formattedCity}, ${formattedState}` : formattedCity || formattedState;
+  const inLocationText = heroLocation ? `in ${heroLocation}` : '';
+  const dropdownStateFallback = formattedState || 'Florida';
+
   const evaluationSpeed = activeRecord ? activeRecord.speed : '10 days';
   const localRating = activeRecord ? activeRecord.rating : 4.9;
   const localBuyers = activeRecord ? activeRecord.activeBuyers : 15;
@@ -89,13 +117,15 @@ export default function MarketPage() {
   const [step, setStep] = useState(1);
   const [address, setAddress] = useState('');
   const [city, setCity] = useState(formattedCity);
-  const [selectedState, setSelectedState] = useState(formattedState);
+  const [selectedState, setSelectedState] = useState(dropdownStateFallback);
   const [zipCode, setZipCode] = useState('');
+  
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
   
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [successLead, setSuccessLead] = useState<Lead | null>(null);
   const [fieldError, setFieldError] = useState('');
 
@@ -103,9 +133,10 @@ export default function MarketPage() {
   const [agentCommissionPct, setAgentCommissionPct] = useState(6);
   const [closingCostsPct, setClosingCostsPct] = useState(2);
   const [repairEstimate, setRepairEstimate] = useState(15000);
+  const [expandedFaq, setExpandedAccordion] = useState<number | null>(null);
 
   // Formspree Hook Configuration
-  const [formState, handleFormspreeSubmit] = useForm('xpqgnqlj');
+  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xpqgnqlj';
 
   // SECTION: Form Handlers
   const handleNextStep = () => {
@@ -128,6 +159,8 @@ export default function MarketPage() {
       return;
     }
 
+    setIsSubmitting(true);
+
     const leadPayload: Lead = {
       id: 'lead-' + Date.now(),
       address,
@@ -145,14 +178,18 @@ export default function MarketPage() {
     };
 
     try {
-      await handleFormspreeSubmit(leadPayload as any);
-      leadPayload.webhookSynced = true;
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+        body: JSON.stringify(leadPayload)
+      });
+      if (response.ok) leadPayload.webhookSynced = true;
     } catch (err) {
       console.error('Formspree dispatch failed.', err);
-      setFieldError('There was an issue processing your request. Please try again.');
     }
 
     setSuccessLead(leadPayload);
+    setIsSubmitting(false);
     setStep(3);
   };
 
@@ -160,7 +197,7 @@ export default function MarketPage() {
     setStep(1);
     setAddress('');
     setCity(formattedCity);
-    setSelectedState(formattedState);
+    setSelectedState(dropdownStateFallback);
     setZipCode('');
     setFirstName('');
     setLastName('');
@@ -191,26 +228,17 @@ export default function MarketPage() {
   return (
     <div className="min-h-screen flex flex-col font-sans transition-colors duration-300">
       
+      {/* Dynamic Top Banner */}
       <div id="sticky-callout" className="bg-[#ff7043] text-white py-3 px-5 text-center text-sm md:text-base font-bold tracking-wide shadow-sm z-50">
         <span className="inline-block bg-white/20 px-2.5 py-1 rounded text-xs uppercase mr-2 animate-pulse">⏰ Live Alert</span>
-        {formattedState} coverage update: We currently buy in <strong className="font-bold underline text-white">{heroLocation} & Surrounding Areas</strong>! Avoid commission fees by about 10%
+        {heroLocation} coverage update: We currently buy in <strong className="font-bold underline text-white">{heroLocation} & Surrounding Areas</strong>! Avoid commission fees by about 10%
       </div>
 
       <header className="bg-white border-b border-[#ced1d5]/40 sticky top-0 z-40 transform transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-          
           <div className="flex items-center space-x-3.5">
-            <img 
-              src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" 
-              alt="Nigel Buys Houses Logo" 
-              className="h-10 md:h-12 w-auto object-contain" 
-              referrerPolicy="no-referrer" 
-            />
-            <div>
-              <span className="block font-serif text-xl md:text-2xl font-black text-[#092641] leading-none tracking-tight">
-                Nigel Buys Houses
-              </span>
-            </div>
+            <img src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" alt="Nigel Buys Houses Logo" className="h-10 md:h-12 w-auto object-contain" referrerPolicy="no-referrer" />
+            <div><span className="block font-serif text-xl md:text-2xl font-black text-[#092641] leading-none tracking-tight">Nigel Buys Houses</span></div>
           </div>
 
           <nav className="hidden lg:flex items-center space-x-8 text-[16px] font-bold text-[#092641]">
@@ -223,19 +251,13 @@ export default function MarketPage() {
 
           <div className="flex items-center space-x-4">
             <div className="hidden sm:flex flex-col text-right">
+              {/* Dynamic Header Contact */}
               <span className="text-[10px] text-[#868c92] font-bold uppercase tracking-wider">Talk to a Coordinator</span>
               <a href="tel:(480)500-9801" className="text-base md:text-lg font-extrabold text-[#ff7043] hover:underline flex items-center justify-end">
-                <Phone className="h-4 w-4 mr-1.5 fill-current" />
-                (480) 500-9801
+                <Phone className="h-4 w-4 mr-1.5 fill-current" />(480) 500-9801
               </a>
             </div>
-
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2.5 rounded-lg border border-[#ced1d5] text-[#092641] hover:bg-[#f8f8f8]"
-              style={{ minHeight: '44px', minWidth: '44px' }}
-              aria-label="Toggle Menu"
-            >
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2.5 rounded-lg border border-[#ced1d5] text-[#092641] hover:bg-[#f8f8f8]" style={{ minHeight: '44px', minWidth: '44px' }}>
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
@@ -246,15 +268,13 @@ export default function MarketPage() {
             <p className="text-[11px] font-bold text-slate-400 uppercase tracking-widest px-2.5">Menu Topics</p>
             <a href="#how-it-works" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2.5 rounded-lg font-semibold text-slate-800 hover:bg-[#ff7043]/10 hover:text-[#ff7043]">How It Works</a>
             <a href="#compare" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2.5 rounded-lg font-semibold text-slate-800 hover:bg-[#ff7043]/10 hover:text-[#ff7043]">Compare Options</a>
-            <a href="#coverage" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2.5 rounded-lg font-semibold text-slate-800 hover:bg-[#ff7043]/10 hover:text-[#ff7043]">Where We Buy</a>
+            <a href="#coverage" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2.5 rounded-lg font-semibold text-slate-800 hover:bg-[#ff7043]/10 hover:text-[#ff7043]">Where We Buy Map</a>
             <a href="#trust" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2.5 rounded-lg font-semibold text-slate-800 hover:bg-[#ff7043]/10 hover:text-[#ff7043]">Our Company Values</a>
             <a href="#faqs" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2.5 rounded-lg font-semibold text-slate-800 hover:bg-[#ff7043]/10 hover:text-[#ff7043]">FAQs</a>
-            
             <div className="pt-4 border-t border-slate-200 flex flex-col space-y-2">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2.5">Call our 24/7 hotline</span>
               <a href="tel:(480)500-9801" className="flex items-center justify-center p-3 text-lg font-black bg-[#ff7043] text-white rounded-lg shadow" style={{ minHeight: '44px' }}>
-                <Phone className="h-5 w-5 mr-2 fill-current" />
-                (480) 500-9801
+                <Phone className="h-5 w-5 mr-2 fill-current" />(480) 500-9801
               </a>
             </div>
           </div>
@@ -266,7 +286,6 @@ export default function MarketPage() {
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-905 to-transparent pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
             <div className="inline-flex items-center space-x-2 bg-slate-800/80 border border-slate-700 px-4 py-2 rounded-full text-sm font-semibold text-[#ff7043] tracking-wide">
               <span>A+ Accredited Business</span>
@@ -274,8 +293,9 @@ export default function MarketPage() {
               <span className="font-bold text-green-400">Online &amp; Active</span>
             </div>
 
+            {/* Dynamic Hero Title */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black font-serif leading-tight">
-              Sell Your {heroLocation} House Fast On Your Terms. No Headaches.
+              Sell Your {heroLocation} Property Fast. No Headaches.
             </h1>
 
             <p className="text-slate-300 text-lg md:text-xl font-light max-w-2xl mx-auto lg:mx-0 leading-relaxed">
@@ -284,23 +304,17 @@ export default function MarketPage() {
 
             <div className="pt-6 grid grid-cols-3 gap-4 max-w-lg mx-auto lg:mx-0">
               <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-3 text-center transition hover:border-[#ff7043]/30">
-                <div className="flex justify-center text-amber-400 mb-1">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="h-4.5 w-4.5 fill-current" />)}
-                </div>
+                <div className="flex justify-center text-amber-400 mb-1">{[...Array(5)].map((_, i) => <Star key={i} className="h-4.5 w-4.5 fill-current" />)}</div>
                 <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-bold">Google Stars</p>
                 <p className="text-sm font-black text-white">5.0 Out of 5</p>
               </div>
-
               <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-3 text-center transition hover:border-[#ff7043]/30">
                 <div className="text-blue-400 text-base font-black mb-1 tracking-widest">BBB A+</div>
                 <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-bold">TRUSTED</p>
                 <p className="text-sm font-black text-white">Accredited</p>
               </div>
-
               <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-3 text-center transition hover:border-[#ff7043]/30">
-                <div className="flex justify-center text-blue-400 mb-1">
-                  <ThumbsUp className="h-4.5 w-4.5 fill-current" />
-                </div>
+                <div className="flex justify-center text-blue-400 mb-1"><ThumbsUp className="h-4.5 w-4.5 fill-current" /></div>
                 <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-bold">REVIEWS</p>
                 <p className="text-sm font-black text-white">5-Star Rated</p>
               </div>
@@ -324,10 +338,7 @@ export default function MarketPage() {
                 <span className={step >= 3 ? "text-green-500 font-extrabold" : ""}>3. ESTIMATES</span>
               </div>
               <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full transition-all duration-500 ${step === 3 ? "bg-green-500" : "bg-[#ff7043]"}`}
-                  style={{ width: step === 1 ? '33.3%' : step === 2 ? '66.6%' : '100%' }}
-                />
+                <div className={`h-full transition-all duration-500 ${step === 3 ? "bg-green-500" : "bg-[#ff7043]"}`} style={{ width: step === 1 ? '33.3%' : step === 2 ? '66.6%' : '100%' }} />
               </div>
             </div>
 
@@ -350,20 +361,14 @@ export default function MarketPage() {
                     <label className="block text-xs font-bold uppercase text-[#092641] mb-1">Street Address <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-                      <input 
-                        type="text" 
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        placeholder="e.g. 129 Walnut Dr" 
-                        className="w-full pl-10 pr-3 py-2.5 border-2 border-slate-200 rounded-lg text-sm focus:border-[#ff7043] focus:outline-none"
-                      />
+                      <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="e.g. 129 Walnut Dr" className="w-full pl-10 pr-3 py-2.5 border-2 border-slate-200 rounded-lg text-sm focus:border-[#ff7043] focus:outline-none" />
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="block text-xs font-bold uppercase text-[#092641] mb-1">City <span className="text-slate-400">(optional)</span></label>
-                      <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder="Orlando" className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-lg text-sm focus:border-[#ff7043] focus:outline-none" />
+                      <input type="text" value={city} onChange={(e) => setCity(e.target.value)} placeholder={formattedCity || "Orlando"} className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-lg text-sm focus:border-[#ff7043] focus:outline-none" />
                     </div>
                     <div>
                       <label className="block text-xs font-bold uppercase text-[#092641] mb-1">Zip Code <span className="text-slate-400">(optional)</span></label>
@@ -373,11 +378,7 @@ export default function MarketPage() {
 
                   <div>
                     <label className="block text-xs font-bold uppercase text-[#092641] mb-1">State <span className="text-red-500">*</span></label>
-                    <select 
-                      value={selectedState}
-                      onChange={(e) => setSelectedState(e.target.value)}
-                      className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-lg text-sm bg-white focus:border-[#ff7043] focus:outline-none"
-                    >
+                    <select value={selectedState} onChange={(e) => setSelectedState(e.target.value)} className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-lg text-sm bg-white focus:border-[#ff7043] focus:outline-none">
                       {STATE_RECORDS.map((st) => (
                         <option key={st.abbr} value={st.name}>{st.name}</option>
                       ))}
@@ -424,22 +425,9 @@ export default function MarketPage() {
                 </div>
 
                 <div className="flex space-x-3.5 pt-2">
-                  <button type="button" onClick={() => setStep(1)} className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-lg text-sm font-bold transition" style={{ minHeight: '44px' }}>
-                    Back
-                  </button>
-
-                  <button type="submit" disabled={formState.submitting} className="w-2/3 bg-[#ff7043] hover:bg-[#e65100] text-white py-3 rounded-lg font-serif text-base font-bold shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2" style={{ minHeight: '44px' }}>
-                    {formState.submitting ? (
-                      <>
-                        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Calculating...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Get Valuation Payout</span>
-                        <ArrowRight className="h-4 w-4" />
-                      </>
-                    )}
+                  <button type="button" onClick={() => setStep(1)} className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-lg text-sm font-bold transition" style={{ minHeight: '44px' }}>Back</button>
+                  <button type="submit" disabled={isSubmitting} className="w-2/3 bg-[#ff7043] hover:bg-[#e65100] text-white py-3 rounded-lg font-serif text-base font-bold shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2" style={{ minHeight: '44px' }}>
+                    {isSubmitting ? <><span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Calculating...</span></> : <><span>Get Valuation Payout</span><ArrowRight className="h-4 w-4" /></>}
                   </button>
                 </div>
               </form>
@@ -482,7 +470,6 @@ export default function MarketPage() {
               <span>We value your privacy. Your address is strictly confidential.</span>
             </div>
           </div>
-
         </div>
       </section>
 
@@ -539,7 +526,7 @@ export default function MarketPage() {
                 <span className="text-xs text-[#868c92] font-semibold tracking-wider flex items-center"><Clock className="h-4 w-4 mr-1 text-[#ff7043]" />9-14 Days Close</span>
               </div>
               <h3 className="text-2xl font-serif font-black text-[#092641] mb-3">The "Nigel Buys Houses Cash Offer"</h3>
-              <p className="text-slate-500 text-sm font-light mb-6">Get a quick, assured buyout estimate on your property {inLocationText}. Perfect for fast relocation, inherited houses, dealing with tenants, or escaping heavy foreclosure timelines.</p>
+              <p className="text-slate-500 text-sm font-light mb-6">Get a quick, assured buyout estimate on your property {inLocationText}. Perfect for fast relocation, inherited properties, dealing with tenants, or escaping heavy foreclosure timelines.</p>
 
               <ul className="space-y-3.5 text-sm font-medium text-slate-700">
                 <li className="flex items-start space-x-2"><Check className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" /><span><strong>Zero cleaning required:</strong> Sell in exact as-is condition. Leave unwanted property items.</span></li>
@@ -555,7 +542,7 @@ export default function MarketPage() {
                 <span className="text-xs text-[#868c92] font-semibold tracking-wider flex items-center"><TrendingUp className="h-4 w-4 mr-1 text-emerald-500" />Max Value Program</span>
               </div>
               <h3 className="text-2xl font-serif font-black text-[#092641] mb-3">The "Almost Retail" Partnership</h3>
-              <p className="text-slate-500 text-sm font-light mb-6">Keep the majority of your hard-earned equity. We match your property {inLocationText} with our localized trained buyer network who are willing to purchase your house with minimal repair expectations.</p>
+              <p className="text-slate-500 text-sm font-light mb-6">Keep the majority of your hard-earned equity. We match your property {inLocationText} with our localized trained buyer network who are willing to purchase your property with minimal repair expectations.</p>
 
               <ul className="space-y-3.5 text-sm font-medium text-slate-705">
                 <li className="flex items-start space-x-2"><Check className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" /><span><strong>Highest Payout:</strong> Payout matches close to standard market value.</span></li>
@@ -652,7 +639,7 @@ export default function MarketPage() {
       <section id="coverage" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-            <h2 className="text-3xl md:text-4xl font-serif font-black text-[#092641]">Where Nigel Buys Houses</h2>
+            <h2 className="text-3xl md:text-4xl font-serif font-black text-[#092641]">Where Nigel Buys Properties</h2>
             <p className="text-slate-600 font-light">We operate actively across the United States. View your local coordinator and check state eligibility.</p>
           </div>
 
@@ -663,7 +650,7 @@ export default function MarketPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-700 pb-4 gap-2">
                 <div>
                   <h3 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight flex items-center">
-                    <MapPin className="stroke-2 text-[#ff7043] mr-2 h-6 w-6 shrink-0" />Active: {formattedState}
+                    <MapPin className="stroke-2 text-[#ff7043] mr-2 h-6 w-6 shrink-0" />Active: {formattedState || formattedCity}
                   </h3>
                   <p className="text-xs text-slate-400 mt-1">County valuation records matched in this region successfully.</p>
                 </div>
@@ -703,7 +690,7 @@ export default function MarketPage() {
             </div>
 
             <div className="mt-8 pt-4 border-t border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-xs text-slate-400 text-center sm:text-left">Need an estimate in <strong>{formattedState}</strong>? Lock your local coordinator rate today.</p>
+              <p className="text-xs text-slate-400 text-center sm:text-left">Need an estimate {inLocationText}? Lock your local coordinator rate today.</p>
               <a href="#sticky-callout" className="bg-[#ff7043] hover:bg-[#e65100] text-white px-6 py-2.5 rounded-lg text-sm font-bold tracking-tight shadow flex items-center justify-center shrink-0 w-full sm:w-auto" style={{ minHeight: '44px' }}>
                 <span>Lock Rates Online</span>
                 <ArrowRight className="h-4 w-4 ml-1.5" />
