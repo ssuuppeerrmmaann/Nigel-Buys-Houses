@@ -1,11 +1,12 @@
 // FILE: MarketPage.tsx
-// TITLE: MarketPage (Clean Native Fetch)
+// TITLE: MarketPage (Fixed Runtime Calculation Engine)
 
 // SECTION: Core Imports
 import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useForm } from '@formspree/react';
 import { 
-  ShieldCheck, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList
+  ShieldCheck, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList, Trash
 } from 'lucide-react';
 
 // SECTION: Type Definitions
@@ -120,13 +121,15 @@ export default function MarketPage() {
   const [fieldError, setFieldError] = useState('');
 
   const [houseValue, setHouseValue] = useState(250000);
+  const [repairEstimate, setRepairEstimate] = useState(15000);
   const [agentCommissionPct, setAgentCommissionPct] = useState(6);
   const [closingCostsPct, setClosingCostsPct] = useState(2);
-  const [repairEstimate, setRepairEstimate] = useState(15000);
   const [expandedFaq, setExpandedAccordion] = useState<number | null>(null);
 
+  // Formspree Hook Configuration
   const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xpqgnqlj';
 
+  // SECTION: Form Handlers
   const handleNextStep = () => {
     setFieldError('');
     if (step === 1) {
@@ -195,6 +198,7 @@ export default function MarketPage() {
     setFieldError('');
   };
 
+  // SECTION: Calculators
   const cashOfferPercentage = 0.76; 
   const cashOfferValue = Math.round(houseValue * cashOfferPercentage - (repairEstimate * 0.5));
   
@@ -211,6 +215,7 @@ export default function MarketPage() {
   const partnerListingFee = Math.round(houseValue * 0.025); 
   const partnerNetPayout = partnerListingPrice - partnerClosingCosts - partnerSaleRepairs - partnerListingFee;
 
+  // SECTION: Render
   return (
     <div className="min-h-screen flex flex-col font-sans transition-colors duration-300">
       
@@ -287,7 +292,7 @@ export default function MarketPage() {
 
             <div className="pt-6 grid grid-cols-3 gap-4 max-w-lg mx-auto lg:mx-0">
               <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-3 text-center transition hover:border-[#ff7043]/30">
-                <div className="flex justify-center text-amber-400 mb-1">{[...Array(5)].map((_, i) => <Star key={i} className="h-4.5 w-4.5 fill-current" />)}</div>
+                <div className="flex justify-center text-amber-400 mb-1">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}</div>
                 <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-bold">Google Stars</p>
                 <p className="text-sm font-black text-white">5.0 Out of 5</p>
               </div>
