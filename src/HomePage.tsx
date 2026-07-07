@@ -664,7 +664,7 @@ export default function HomePage() {
       <section id="coverage" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-            <h2 className="text-3xl md:text-4xl font-serif font-black text-[#092641]">Where Nigel Buys Houses Buys Houses</h2>
+            <h2 className="text-3xl md:text-4xl font-serif font-black text-[#092641]">Where Nigel Buys Houses</h2>
             <p className="text-slate-600 font-light">We operate actively across the United States. Click on your state below or search to find your local coordinator, average buyout times, and check state eligibility.</p>
           </div>
 
