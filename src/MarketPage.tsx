@@ -1,5 +1,5 @@
 // FILE: MarketPage.tsx
-// TITLE: MarketPage (Fatal Import Patch)
+// TITLE: MarketPage (Runtime Variable Restoration)
 
 // SECTION: Core Imports
 import React, { useState, useEffect } from 'react';
@@ -99,6 +99,11 @@ export default function MarketPage() {
   const inLocationText = heroLocation ? `in ${heroLocation}` : '';
   const dropdownStateFallback = formattedState || 'Florida';
 
+  // RESTORED VARIABLES FOR DOM RENDERING
+  const evaluationSpeed = activeRecord ? activeRecord.speed : '10 days';
+  const localRating = activeRecord ? activeRecord.rating : 4.9;
+  const localBuyers = activeRecord ? activeRecord.activeBuyers : 15;
+
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [address, setAddress] = useState('');
@@ -121,7 +126,7 @@ export default function MarketPage() {
   const [closingCostsPct, setClosingCostsPct] = useState(2);
   const [expandedFaq, setExpandedAccordion] = useState<number | null>(null);
 
-  // Restored Map State Variables
+  // Map State Variables
   const [mapSearch, setMapSearch] = useState('');
   const [activeStateAbbr, setActiveStateAbbr] = useState(stateAbbr);
   const [activeStateRecord, setActiveStateRecord] = useState(activeRecord || { name: formattedState || 'USA', abbr: stateAbbr, speed: '10 days', rating: 4.8, activeBuyers: 15 });
