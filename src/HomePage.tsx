@@ -1,11 +1,10 @@
 // FILE: HomePage.tsx
-// TITLE: HomePage (Language Purge & Hardcoded Coordinator)
+// TITLE: HomePage (Strict Native Fetch)
 
 // SECTION: Core Imports
-import React, { useState, useEffect } from 'react';
-import { useForm } from '@formspree/react';
+import React, { useState } from 'react';
 import { 
-  Building, ShieldCheck, DollarSign, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Trash, Phone, Mail, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ExternalLink, ChevronRight, ClipboardList
+  ShieldCheck, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList, DollarSign
 } from 'lucide-react';
 
 // SECTION: Type Definitions
@@ -89,28 +88,9 @@ export default function HomePage() {
   const [repairEstimate, setRepairEstimate] = useState(15000);
 
   const [expandedFaq, setExpandedAccordion] = useState<number | null>(null);
-  const [leadsDb, setLeadsDb] = useState<Lead[]>([]);
-  const [adminOpen, setAdminOpen] = useState(false);
-  const [adminSearch, setAdminOpenSearch] = useState('');
 
   // Native Formspree Endpoint Configuration
-  const [formState, handleFormspreeSubmit] = useForm('xpqgnqlj');
-
-  useEffect(() => {
-    const saved = localStorage.getItem('fair_simple_leads');
-    if (saved) {
-      try {
-        setLeadsDb(JSON.parse(saved));
-      } catch (e) {
-        console.error('Failed to parse local leads', e);
-      }
-    }
-  }, []);
-
-  const saveLeadsToStorage = (updatedList: Lead[]) => {
-    localStorage.setItem('fair_simple_leads', JSON.stringify(updatedList));
-    setLeadsDb(updatedList);
-  };
+  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xpqgnqlj';
 
   const handleStateAbbrSelect = (abbr: string) => {
     setActiveStateAbbr(abbr);
@@ -158,14 +138,24 @@ export default function HomePage() {
     };
 
     try {
-      await handleFormspreeSubmit(leadPayload as any);
-      leadPayload.webhookSynced = true;
+      const response = await fetch(FORMSPREE_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(leadPayload)
+      });
+
+      if (response.ok) {
+        leadPayload.webhookSynced = true;
+      } else {
+        console.warn('Formspree received payload but returned an error status.');
+      }
     } catch (err) {
-      console.error('Formspree dispatch failed.', err);
+      console.error('Formspree fetch failed.', err);
     }
 
-    const updatedDb = [leadPayload, ...leadsDb];
-    saveLeadsToStorage(updatedDb);
     setSuccessLead(leadPayload);
     setIsSubmitting(false);
     setStep(3);
@@ -183,13 +173,6 @@ export default function HomePage() {
     setEmail('');
     setSuccessLead(null);
     setFieldError('');
-  };
-
-  const handleDeleteLead = (id: string) => {
-    if (confirm('Are you sure you want to remove this lead record locally?')) {
-      const updated = leadsDb.filter(l => l.id !== id);
-      saveLeadsToStorage(updated);
-    }
   };
 
   // SECTION: Calculators
@@ -397,14 +380,7 @@ export default function HomePage() {
                     <label className="block text-xs font-bold uppercase text-[#092641] mb-1">State <span className="text-red-500">*</span></label>
                     <select 
                       value={selectedState}
-                      onChange={(e) => {
-                        setSelectedState(e.target.value);
-                        const match = STATE_RECORDS.find(s => s.name === e.target.value);
-                        if (match) {
-                          setActiveStateAbbr(match.abbr);
-                          setActiveStateRecord(match);
-                        }
-                      }}
+                      onChange={(e) => setSelectedState(e.target.value)}
                       className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-lg text-sm bg-white focus:border-[#ff7043] focus:outline-none"
                     >
                       {STATE_RECORDS.map((st) => (
@@ -568,7 +544,7 @@ export default function HomePage() {
                 <span className="text-xs text-[#868c92] font-semibold tracking-wider flex items-center"><Clock className="h-4 w-4 mr-1 text-[#ff7043]" />9-14 Days Close</span>
               </div>
               <h3 className="text-2xl font-serif font-black text-[#092641] mb-3">The "Nigel Buys Houses Cash Offer"</h3>
-              <p className="text-slate-500 text-sm font-light mb-6">Get a quick, assured buyout estimate on your property. Perfect for fast relocation, inherited houses, dealing with tenants, or escaping heavy foreclosure timelines.</p>
+              <p className="text-slate-500 text-sm font-light mb-6">Get a quick, assured buyout estimate on your property. Perfect for fast relocation, inherited properties, dealing with tenants, or escaping heavy foreclosure timelines.</p>
 
               <ul className="space-y-3.5 text-sm font-medium text-slate-700">
                 <li className="flex items-start space-x-2"><Check className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" /><span><strong>Zero cleaning required:</strong> Sell in exact as-is condition. Leave unwanted property items.</span></li>
@@ -681,7 +657,7 @@ export default function HomePage() {
       <section id="coverage" className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
-            <h2 className="text-3xl md:text-4xl font-serif font-black text-[#092641]">Where Nigel Buys Houses</h2>
+            <h2 className="text-3xl md:text-4xl font-serif font-black text-[#092641]">Where Nigel Buys Properties</h2>
             <p className="text-slate-600 font-light">We operate actively across the United States. Click on your state below or search to find your local coordinator, average buyout times, and check state eligibility.</p>
           </div>
 
