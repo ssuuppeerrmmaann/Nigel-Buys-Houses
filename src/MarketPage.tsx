@@ -1,12 +1,11 @@
 // FILE: MarketPage.tsx
-// TITLE: MarketPage (Dynamic Dictionary Filter Architecture)
+// TITLE: MarketPage (Clean Native Fetch)
 
 // SECTION: Core Imports
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { useForm } from '@formspree/react';
 import { 
-  ShieldCheck, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList, Trash
+  ShieldCheck, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList
 } from 'lucide-react';
 
 // SECTION: Type Definitions
@@ -69,14 +68,11 @@ const capitalizeWords = (str: string) => {
 
 // SECTION: Main Component
 export default function MarketPage() {
-  // Extract dynamic parameters from React Router
   const { stateId, cityId } = useParams();
   
-  // 1. Clean the raw URL strings
   const cleanParam1 = stateId ? capitalizeWords(stateId) : '';
   const cleanParam2 = cityId ? capitalizeWords(cityId) : '';
 
-  // 2. Dictionary Filter: Check if param 1 is actually a known 50 US state
   const knownStateRecord = STATE_RECORDS.find(s => s.name.toLowerCase() === cleanParam1.toLowerCase());
 
   let formattedState = '';
@@ -85,25 +81,20 @@ export default function MarketPage() {
   let activeRecord = knownStateRecord;
 
   if (cleanParam2) {
-    // Scenario A: /florida/orlando (State + City)
     formattedState = cleanParam1;
     formattedCity = cleanParam2;
     stateAbbr = knownStateRecord ? knownStateRecord.abbr : cleanParam1.substring(0, 2).toUpperCase();
   } else if (knownStateRecord) {
-    // Scenario B: /florida (State Only)
     formattedState = knownStateRecord.name;
     formattedCity = ''; 
     stateAbbr = knownStateRecord.abbr;
   } else if (cleanParam1) {
-    // Scenario C: /springfield (City Only - it failed the dictionary match)
     formattedState = ''; 
     formattedCity = cleanParam1;
-    stateAbbr = 'US'; // Generic fallback to prevent crashing the acronym UI
-    // Provide a generic fallback record for speed/ratings since state is unknown
+    stateAbbr = 'US'; 
     activeRecord = { name: 'USA', abbr: 'US', speed: '10 days', rating: 4.8, activeBuyers: 15 };
   }
 
-  // Construct UI targeting strings safely
   const heroLocation = formattedCity && formattedState ? `${formattedCity}, ${formattedState}` : formattedCity || formattedState;
   const inLocationText = heroLocation ? `in ${heroLocation}` : '';
   const dropdownStateFallback = formattedState || 'Florida';
@@ -113,7 +104,6 @@ export default function MarketPage() {
   const localBuyers = activeRecord ? activeRecord.activeBuyers : 15;
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  
   const [step, setStep] = useState(1);
   const [address, setAddress] = useState('');
   const [city, setCity] = useState(formattedCity);
@@ -135,10 +125,8 @@ export default function MarketPage() {
   const [repairEstimate, setRepairEstimate] = useState(15000);
   const [expandedFaq, setExpandedAccordion] = useState<number | null>(null);
 
-  // Formspree Hook Configuration
   const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xpqgnqlj';
 
-  // SECTION: Form Handlers
   const handleNextStep = () => {
     setFieldError('');
     if (step === 1) {
@@ -207,7 +195,6 @@ export default function MarketPage() {
     setFieldError('');
   };
 
-  // SECTION: Calculators
   const cashOfferPercentage = 0.76; 
   const cashOfferValue = Math.round(houseValue * cashOfferPercentage - (repairEstimate * 0.5));
   
@@ -224,11 +211,9 @@ export default function MarketPage() {
   const partnerListingFee = Math.round(houseValue * 0.025); 
   const partnerNetPayout = partnerListingPrice - partnerClosingCosts - partnerSaleRepairs - partnerListingFee;
 
-  // SECTION: Render
   return (
     <div className="min-h-screen flex flex-col font-sans transition-colors duration-300">
       
-      {/* Dynamic Top Banner */}
       <div id="sticky-callout" className="bg-[#ff7043] text-white py-3 px-5 text-center text-sm md:text-base font-bold tracking-wide shadow-sm z-50">
         <span className="inline-block bg-white/20 px-2.5 py-1 rounded text-xs uppercase mr-2 animate-pulse">⏰ Live Alert</span>
         {heroLocation} coverage update: We currently buy in <strong className="font-bold underline text-white">{heroLocation} & Surrounding Areas</strong>! Avoid commission fees by about 10%
@@ -251,7 +236,6 @@ export default function MarketPage() {
 
           <div className="flex items-center space-x-4">
             <div className="hidden sm:flex flex-col text-right">
-              {/* Dynamic Header Contact */}
               <span className="text-[10px] text-[#868c92] font-bold uppercase tracking-wider">Talk to a Coordinator</span>
               <a href="tel:(480)500-9801" className="text-base md:text-lg font-extrabold text-[#ff7043] hover:underline flex items-center justify-end">
                 <Phone className="h-4 w-4 mr-1.5 fill-current" />(480) 500-9801
@@ -293,7 +277,6 @@ export default function MarketPage() {
               <span className="font-bold text-green-400">Online &amp; Active</span>
             </div>
 
-            {/* Dynamic Hero Title */}
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black font-serif leading-tight">
               Sell Your {heroLocation} Property Fast. No Headaches.
             </h1>
