@@ -1,12 +1,11 @@
 // FILE: MarketPage.tsx
-// TITLE: MarketPage (Fixed Runtime Calculation Engine)
+// TITLE: MarketPage (Runtime Rendering Patch)
 
 // SECTION: Core Imports
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
-import { useForm } from '@formspree/react';
 import { 
-  ShieldCheck, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList, Trash
+  ShieldCheck, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList
 } from 'lucide-react';
 
 // SECTION: Type Definitions
@@ -100,10 +99,6 @@ export default function MarketPage() {
   const inLocationText = heroLocation ? `in ${heroLocation}` : '';
   const dropdownStateFallback = formattedState || 'Florida';
 
-  const evaluationSpeed = activeRecord ? activeRecord.speed : '10 days';
-  const localRating = activeRecord ? activeRecord.rating : 4.9;
-  const localBuyers = activeRecord ? activeRecord.activeBuyers : 15;
-
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [step, setStep] = useState(1);
   const [address, setAddress] = useState('');
@@ -126,10 +121,26 @@ export default function MarketPage() {
   const [closingCostsPct, setClosingCostsPct] = useState(2);
   const [expandedFaq, setExpandedAccordion] = useState<number | null>(null);
 
-  // Formspree Hook Configuration
+  // Restored Map State Variables
+  const [mapSearch, setMapSearch] = useState('');
+  const [activeStateAbbr, setActiveStateAbbr] = useState(stateAbbr);
+  const [activeStateRecord, setActiveStateRecord] = useState(activeRecord || { name: formattedState || 'USA', abbr: stateAbbr, speed: '10 days', rating: 4.8, activeBuyers: 15 });
+
+  // Sync localized state if URL parameters change
+  useEffect(() => {
+    setActiveStateAbbr(stateAbbr);
+    setActiveStateRecord(activeRecord || { name: formattedState || 'USA', abbr: stateAbbr, speed: '10 days', rating: 4.8, activeBuyers: 15 });
+  }, [stateAbbr, activeRecord, formattedState]);
+
   const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xpqgnqlj';
 
   // SECTION: Form Handlers
+  const handleStateAbbrSelect = (abbr: string) => {
+    setActiveStateAbbr(abbr);
+    const record = STATE_RECORDS.find(s => s.abbr === abbr);
+    if (record) setActiveStateRecord(record);
+  };
+
   const handleNextStep = () => {
     setFieldError('');
     if (step === 1) {
@@ -198,10 +209,8 @@ export default function MarketPage() {
     setFieldError('');
   };
 
-  // SECTION: Calculators
   const cashOfferPercentage = 0.76; 
   const cashOfferValue = Math.round(houseValue * cashOfferPercentage - (repairEstimate * 0.5));
-  
   const traditionalCommission = Math.round(houseValue * (agentCommissionPct / 100));
   const traditionalClosingCosts = Math.round(houseValue * (closingCostsPct / 100));
   const traditionalRepairs = repairEstimate;
@@ -215,7 +224,6 @@ export default function MarketPage() {
   const partnerListingFee = Math.round(houseValue * 0.025); 
   const partnerNetPayout = partnerListingPrice - partnerClosingCosts - partnerSaleRepairs - partnerListingFee;
 
-  // SECTION: Render
   return (
     <div className="min-h-screen flex flex-col font-sans transition-colors duration-300">
       
@@ -292,7 +300,7 @@ export default function MarketPage() {
 
             <div className="pt-6 grid grid-cols-3 gap-4 max-w-lg mx-auto lg:mx-0">
               <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-3 text-center transition hover:border-[#ff7043]/30">
-                <div className="flex justify-center text-amber-400 mb-1">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}</div>
+                <div className="flex justify-center text-amber-400 mb-1">{[...Array(5)].map((_, i) => <Star key={i} className="h-4.5 w-4.5 fill-current" />)}</div>
                 <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-bold">Google Stars</p>
                 <p className="text-sm font-black text-white">5.0 Out of 5</p>
               </div>
@@ -628,61 +636,85 @@ export default function MarketPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto space-y-4 mb-16">
             <h2 className="text-3xl md:text-4xl font-serif font-black text-[#092641]">Where Nigel Buys Properties</h2>
-            <p className="text-slate-600 font-light">We operate actively across the United States. View your local coordinator and check state eligibility.</p>
+            <p className="text-slate-600 font-light">We operate actively across the United States. Click on your state below or search to find your local coordinator, average buyout times, and check state eligibility.</p>
           </div>
 
-          <div className="bg-[#092641] text-white rounded-2xl p-6 md:p-8 relative overflow-hidden flex flex-col justify-between max-w-4xl mx-auto">
-            <div className="absolute top-[-30px] right-[-30px] w-64 h-64 bg-slate-800 rounded-full mix-blend-multiply filter blur-2xl opacity-40 pointer-events-none" />
-            
-            <div className="relative z-10 space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-700 pb-4 gap-2">
-                <div>
-                  <h3 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight flex items-center">
-                    <MapPin className="stroke-2 text-[#ff7043] mr-2 h-6 w-6 shrink-0" />Active: {formattedState || formattedCity}
-                  </h3>
-                  <p className="text-xs text-slate-400 mt-1">County valuation records matched in this region successfully.</p>
-                </div>
-                <div className="bg-slate-800/80 border border-slate-700 rounded-full px-3 py-1 flex items-center shrink-0 w-max">
-                  <span className="h-2 w-2 rounded-full bg-green-400 mr-2 animate-pulse" />
-                  <span className="text-[11px] font-bold tracking-wider uppercase text-slate-300">ELIGIBLE FOR Direct offers</span>
-                </div>
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-stretch">
+            <div className="lg:col-span-5 flex flex-col space-y-4">
+              <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                <label className="block text-xs font-extrabold uppercase text-[#092641] tracking-wider mb-2">Filter Valualable States</label>
+                <input type="text" placeholder="e.g. Texas, Florida, Michigan..." value={mapSearch} onChange={(e) => setMapSearch(e.target.value)} className="w-full px-3 py-2 border-2 border-slate-200 rounded-lg text-sm bg-white focus:outline-none focus:border-[#ff7043]" />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-4">
-                  <p className="text-xs text-[#868c92] font-semibold uppercase tracking-wider">Local Coordinator on Duty</p>
-                  <div className="flex items-center space-x-3.5">
-                    <div className="h-12 w-12 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xl text-[#ff7043] border border-slate-700">C</div>
-                    <div>
-                      <p className="font-extrabold text-white text-base leading-none">Christopher Clowers</p>
-                      <p className="text-[11px] text-slate-400 mt-1">Lead Real Estate Coordinator</p>
+              <div className="border border-slate-100 rounded-xl overflow-y-auto max-h-96 divide-y divide-slate-100">
+                {STATE_RECORDS.filter(s => s.name.toLowerCase().includes(mapSearch.toLowerCase())).map((st) => (
+                  <button key={st.abbr} onClick={() => handleStateAbbrSelect(st.abbr)} className={`w-full text-left px-4 py-3 flex justify-between items-center transition ${activeStateAbbr === st.abbr ? 'bg-[#ff7043]/10 font-bold border-l-4 border-[#ff7043]' : 'hover:bg-slate-50'}`}>
+                    <div className="flex items-center space-x-2.5">
+                      <span className="inline-block bg-[#092641] text-white text-[10px] w-5 h-5 rounded flex items-center justify-center font-bold tracking-tight">{st.abbr}</span>
+                      <span className="text-sm text-[#092641]">{st.name}</span>
                     </div>
-                  </div>
-                  <div className="space-y-2 pt-2 text-sm text-slate-300">
-                    <div className="flex justify-between py-1 border-b border-slate-800"><span>Average Evaluation Time:</span><strong className="text-white">{evaluationSpeed}</strong></div>
-                    <div className="flex justify-between py-1 border-b border-slate-800"><span>Active Underwriters / Buyers:</span><strong className="text-white">{localBuyers} partners</strong></div>
-                    <div className="flex justify-between py-1 border-b border-slate-800"><span>Lead Rating in {stateAbbr}:</span><strong className="text-amber-400 flex items-center">★ {localRating} / 5.0</strong></div>
-                  </div>
-                </div>
-
-                <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
-                  <div>
-                    <div className="flex text-amber-400 mb-3.5">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-current shrink-0" />)}</div>
-                    <p className="text-xs text-slate-300 italic leading-relaxed">"Choosing Nigel Buys Houses {inLocationText} was the best choice I made after my mom passed away. Christopher Clowers handled the difficult probate details. I walked away with cash in 11 days."</p>
-                  </div>
-                  <div className="mt-4 pt-3.5 border-t border-slate-800 flex justify-between items-center text-[11px] text-slate-400">
-                    <span>&mdash; Verified {stateAbbr} Seller Review</span><strong className="text-white">Rated A+</strong>
-                  </div>
-                </div>
+                    <div className="flex items-center space-x-2 text-xs">
+                      <span className="text-slate-400 font-semibold">{st.speed}</span>
+                      <span className="text-[#ff7043] font-bold">★ {st.rating}</span>
+                    </div>
+                  </button>
+                ))}
               </div>
             </div>
 
-            <div className="mt-8 pt-4 border-t border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <p className="text-xs text-slate-400 text-center sm:text-left">Need an estimate {inLocationText}? Lock your local coordinator rate today.</p>
-              <a href="#sticky-callout" className="bg-[#ff7043] hover:bg-[#e65100] text-white px-6 py-2.5 rounded-lg text-sm font-bold tracking-tight shadow flex items-center justify-center shrink-0 w-full sm:w-auto" style={{ minHeight: '44px' }}>
-                <span>Lock Rates Online</span>
-                <ArrowRight className="h-4 w-4 ml-1.5" />
-              </a>
+            <div className="lg:col-span-7 bg-[#092641] text-white rounded-2xl p-6 md:p-8 relative overflow-hidden flex flex-col justify-between">
+              <div className="absolute top-[-30px] right-[-30px] w-64 h-64 bg-slate-800 rounded-full mix-blend-multiply filter blur-2xl opacity-40 pointer-events-none" />
+              
+              <div className="relative z-10 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-slate-700 pb-4 gap-2">
+                  <div>
+                    <h3 className="text-2xl md:text-3xl font-serif font-bold text-white tracking-tight flex items-center">
+                      <MapPin className="stroke-2 text-[#ff7043] mr-2 h-6 w-6 shrink-0" />Active: {activeStateRecord.name}
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-1">County valuation records matched in this region successfully.</p>
+                  </div>
+                  <div className="bg-slate-800/80 border border-slate-700 rounded-full px-3 py-1 flex items-center shrink-0 w-max">
+                    <span className="h-2 w-2 rounded-full bg-green-400 mr-2 animate-pulse" />
+                    <span className="text-[11px] font-bold tracking-wider uppercase text-slate-300">ELIGIBLE FOR Direct offers</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <p className="text-xs text-[#868c92] font-semibold uppercase tracking-wider">Local Coordinator on Duty</p>
+                    <div className="flex items-center space-x-3.5">
+                      <div className="h-12 w-12 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xl text-[#ff7043] border border-slate-700">C</div>
+                      <div>
+                        <p className="font-extrabold text-white text-base leading-none">Christopher Clowers</p>
+                        <p className="text-[11px] text-slate-400 mt-1">Lead Real Estate Coordinator</p>
+                      </div>
+                    </div>
+                    <div className="space-y-2 pt-2 text-sm text-slate-300">
+                      <div className="flex justify-between py-1 border-b border-slate-800"><span>Average Evaluation Time:</span><strong className="text-white">{activeStateRecord.speed}</strong></div>
+                      <div className="flex justify-between py-1 border-b border-slate-800"><span>Active Underwriters / Buyers:</span><strong className="text-white">{activeStateRecord.activeBuyers} partners</strong></div>
+                      <div className="flex justify-between py-1 border-b border-slate-800"><span>Lead Rating in {activeStateAbbr}:</span><strong className="text-amber-400 flex items-center">★ {activeStateRecord.rating} / 5.0</strong></div>
+                    </div>
+                  </div>
+
+                  <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
+                    <div>
+                      <div className="flex text-amber-400 mb-3.5">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-current shrink-0" />)}</div>
+                      <p className="text-xs text-slate-300 italic leading-relaxed">"Choosing Nigel Buys Houses {inLocationText} was the best choice I made after my mom passed away. Christopher Clowers handled the difficult probate details. I walked away with cash in 11 days."</p>
+                    </div>
+                    <div className="mt-4 pt-3.5 border-t border-slate-800 flex justify-between items-center text-[11px] text-slate-400">
+                      <span>&mdash; Verified {activeStateAbbr} Seller Review</span><strong className="text-white">Rated A+</strong>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-8 pt-4 border-t border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+                <p className="text-xs text-slate-400 text-center sm:text-left">Need an estimate {inLocationText}? Lock your local coordinator rate today.</p>
+                <a href="#sticky-callout" className="bg-[#ff7043] hover:bg-[#e65100] text-white px-6 py-2.5 rounded-lg text-sm font-bold tracking-tight shadow flex items-center justify-center shrink-0 w-full sm:w-auto" style={{ minHeight: '44px' }}>
+                  <span>Lock Rates Online</span>
+                  <ArrowRight className="h-4 w-4 ml-1.5" />
+                </a>
+              </div>
             </div>
           </div>
         </div>
