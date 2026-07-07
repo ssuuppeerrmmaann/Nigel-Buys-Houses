@@ -1,9 +1,9 @@
 // FILE: MarketPage.tsx
-// TITLE: MarketPage (Dynamic SEO Meta Injection Architecture)
+// TITLE: MarketPage (Canonical SEO Redirect Architecture)
 
 // SECTION: Core Imports
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useForm } from '@formspree/react';
 import { 
   ShieldCheck, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList, Trash, DollarSign
@@ -53,11 +53,16 @@ const capitalizeWords = (str: string) => {
 // SECTION: Main Component
 export default function MarketPage() {
   const { stateId, cityId } = useParams();
+  const navigate = useNavigate();
   
-  const cleanParam1 = stateId ? capitalizeWords(stateId) : '';
+  const rawStateParam = stateId || '';
+  const cleanParam1 = capitalizeWords(rawStateParam);
   const cleanParam2 = cityId ? capitalizeWords(cityId) : '';
 
-  const knownStateRecord = STATE_RECORDS.find(s => s.name.toLowerCase() === cleanParam1.toLowerCase());
+  // Dual Dictionary Match: Checks against full name OR acronym
+  const matchByName = STATE_RECORDS.find(s => s.name.toLowerCase() === rawStateParam.replace(/-/g, ' ').toLowerCase());
+  const matchByAbbr = STATE_RECORDS.find(s => s.abbr.toLowerCase() === rawStateParam.toLowerCase());
+  const knownStateRecord = matchByName || matchByAbbr;
 
   let formattedState = '';
   let formattedCity = '';
@@ -65,9 +70,9 @@ export default function MarketPage() {
   let activeRecord = knownStateRecord;
 
   if (cleanParam2) {
-    formattedState = cleanParam1;
+    formattedState = knownStateRecord ? knownStateRecord.name : cleanParam1;
     formattedCity = cleanParam2;
-    stateAbbr = knownStateRecord ? knownStateRecord.abbr : cleanParam1.substring(0, 2).toUpperCase();
+    stateAbbr = knownStateRecord ? knownStateRecord.abbr : rawStateParam.substring(0, 2).toUpperCase();
   } else if (knownStateRecord) {
     formattedState = knownStateRecord.name;
     formattedCity = ''; 
@@ -113,12 +118,19 @@ export default function MarketPage() {
   const [activeStateAbbr, setActiveStateAbbr] = useState(stateAbbr);
   const [activeStateRecord, setActiveStateRecord] = useState(activeRecord || { name: formattedState || 'USA', abbr: stateAbbr, speed: '10 days', rating: 4.8, activeBuyers: 15 });
 
-  // SECTION: Phase 1 SEO Dynamic Meta Injector Hook
+  // SECTION: Phase 1 SEO Dynamic Meta & Canonical Hook
   useEffect(() => {
-    // 1. Inject Localized Browser Window Title
+    // Canonical Rewrite: If the URL uses an acronym, force the browser to the full name path
+    if (matchByAbbr && rawStateParam.toLowerCase() === matchByAbbr.abbr.toLowerCase()) {
+      const canonicalState = matchByAbbr.name.toLowerCase().replace(/ /g, '-');
+      const canonicalUrl = cityId ? `/${canonicalState}/${cityId.toLowerCase()}` : `/${canonicalState}`;
+      navigate(canonicalUrl, { replace: true });
+    }
+
+    // Dynamic Title
     document.title = `Sell Your House Fast ${inLocationText} | As-Is Cash Offer | Nigel Buys Houses`;
 
-    // 2. Inject Localized Crawler Search Description
+    // Dynamic Search Description
     let metaDescription = document.querySelector('meta[name="description"]');
     if (!metaDescription) {
       metaDescription = document.createElement('meta');
@@ -129,7 +141,7 @@ export default function MarketPage() {
       'content', 
       `Get a fair cash evaluation on your property ${inLocationText}. Skip real estate broker commissions, fix-up demands, and listing delays. Review your direct options with Christopher Clowers today.`
     );
-  }, [inLocationText]);
+  }, [inLocationText, matchByAbbr, rawStateParam, cityId, navigate]);
 
   // Sync state if URL route modifications trigger component update
   useEffect(() => {
@@ -306,7 +318,7 @@ export default function MarketPage() {
 
             <div className="pt-6 grid grid-cols-3 gap-4 max-w-lg mx-auto lg:mx-0">
               <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-3 text-center transition hover:border-[#ff7043]/30">
-                <div className="flex justify-center text-amber-400 mb-1">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}</div>
+                <div className="flex justify-center text-amber-400 mb-1">{[...Array(5)].map((_, i) => <Star key={i} className="h-4.5 w-4.5 fill-current" />)}</div>
                 <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-bold">Google Stars</p>
                 <p className="text-sm font-black text-white">5.0 Out of 5</p>
               </div>
@@ -324,7 +336,7 @@ export default function MarketPage() {
 
             <div className="text-xs text-slate-400 mt-2 flex items-center justify-center lg:justify-start space-x-1.5">
               <AlertCircle className="h-4 w-4 text-emerald-400" />
-              <span> We buy properties {inLocationText} currently listed with Real Estate Brokerages and active on the MLS. We are NOT soliciting your property as a listing.</span>
+              <span>We buy properties {inLocationText} currently listed with Real Estate Brokerages and active on the MLS. We are NOT soliciting your property as a listing.</span>
             </div>
           </div>
 
