@@ -1,11 +1,11 @@
 // FILE: MarketPage.tsx
-// TITLE: MarketPage (Runtime Rendering Patch)
+// TITLE: MarketPage (Fatal Import Patch)
 
 // SECTION: Core Imports
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { 
-  ShieldCheck, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList
+  ShieldCheck, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList, Trash, DollarSign
 } from 'lucide-react';
 
 // SECTION: Type Definitions
@@ -690,9 +690,9 @@ export default function MarketPage() {
                       </div>
                     </div>
                     <div className="space-y-2 pt-2 text-sm text-slate-300">
-                      <div className="flex justify-between py-1 border-b border-slate-800"><span>Average Evaluation Time:</span><strong className="text-white">{activeStateRecord.speed}</strong></div>
-                      <div className="flex justify-between py-1 border-b border-slate-800"><span>Active Underwriters / Buyers:</span><strong className="text-white">{activeStateRecord.activeBuyers} partners</strong></div>
-                      <div className="flex justify-between py-1 border-b border-slate-800"><span>Lead Rating in {activeStateAbbr}:</span><strong className="text-amber-400 flex items-center">★ {activeStateRecord.rating} / 5.0</strong></div>
+                      <div className="flex justify-between py-1 border-b border-slate-800"><span>Average Evaluation Time:</span><strong className="text-white">{evaluationSpeed}</strong></div>
+                      <div className="flex justify-between py-1 border-b border-slate-800"><span>Active Underwriters / Buyers:</span><strong className="text-white">{localBuyers} partners</strong></div>
+                      <div className="flex justify-between py-1 border-b border-slate-800"><span>Lead Rating in {stateAbbr}:</span><strong className="text-amber-400 flex items-center">★ {localRating} / 5.0</strong></div>
                     </div>
                   </div>
 
@@ -702,7 +702,7 @@ export default function MarketPage() {
                       <p className="text-xs text-slate-300 italic leading-relaxed">"Choosing Nigel Buys Houses {inLocationText} was the best choice I made after my mom passed away. Christopher Clowers handled the difficult probate details. I walked away with cash in 11 days."</p>
                     </div>
                     <div className="mt-4 pt-3.5 border-t border-slate-800 flex justify-between items-center text-[11px] text-slate-400">
-                      <span>&mdash; Verified {activeStateAbbr} Seller Review</span><strong className="text-white">Rated A+</strong>
+                      <span>&mdash; Verified {stateAbbr} Seller Review</span><strong className="text-white">Rated A+</strong>
                     </div>
                   </div>
                 </div>
