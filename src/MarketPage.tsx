@@ -1,29 +1,13 @@
 // FILE: MarketPage.tsx
-// TITLE: MarketPage (Runtime Variable Restoration)
+// TITLE: MarketPage (Dynamic SEO Meta Injection Architecture)
 
 // SECTION: Core Imports
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
+import { useForm } from '@formspree/react';
 import { 
   ShieldCheck, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Phone, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ChevronRight, ClipboardList, Trash, DollarSign
 } from 'lucide-react';
-
-// SECTION: Type Definitions
-interface Lead {
-  id: string;
-  address: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  firstName: string;
-  lastName: string;
-  phone: string;
-  email: string;
-  timestamp: string;
-  estimatedValue: number;
-  status: 'New' | 'Analyzing' | 'Offer Sent' | 'Action Needed';
-  webhookSynced?: boolean;
-}
 
 // SECTION: Static Data
 const STATE_RECORDS = [
@@ -99,7 +83,6 @@ export default function MarketPage() {
   const inLocationText = heroLocation ? `in ${heroLocation}` : '';
   const dropdownStateFallback = formattedState || 'Florida';
 
-  // RESTORED VARIABLES FOR DOM RENDERING
   const evaluationSpeed = activeRecord ? activeRecord.speed : '10 days';
   const localRating = activeRecord ? activeRecord.rating : 4.9;
   const localBuyers = activeRecord ? activeRecord.activeBuyers : 15;
@@ -126,17 +109,35 @@ export default function MarketPage() {
   const [closingCostsPct, setClosingCostsPct] = useState(2);
   const [expandedFaq, setExpandedAccordion] = useState<number | null>(null);
 
-  // Map State Variables
   const [mapSearch, setMapSearch] = useState('');
   const [activeStateAbbr, setActiveStateAbbr] = useState(stateAbbr);
   const [activeStateRecord, setActiveStateRecord] = useState(activeRecord || { name: formattedState || 'USA', abbr: stateAbbr, speed: '10 days', rating: 4.8, activeBuyers: 15 });
 
-  // Sync localized state if URL parameters change
+  // SECTION: Phase 1 SEO Dynamic Meta Injector Hook
+  useEffect(() => {
+    // 1. Inject Localized Browser Window Title
+    document.title = `Sell Your House Fast ${inLocationText} | As-Is Cash Offer | Nigel Buys Houses`;
+
+    // 2. Inject Localized Crawler Search Description
+    let metaDescription = document.querySelector('meta[name="description"]');
+    if (!metaDescription) {
+      metaDescription = document.createElement('meta');
+      metaDescription.setAttribute('name', 'description');
+      document.head.appendChild(metaDescription);
+    }
+    metaDescription.setAttribute(
+      'content', 
+      `Get a fair cash evaluation on your property ${inLocationText}. Skip real estate broker commissions, fix-up demands, and listing delays. Review your direct options with Christopher Clowers today.`
+    );
+  }, [inLocationText]);
+
+  // Sync state if URL route modifications trigger component update
   useEffect(() => {
     setActiveStateAbbr(stateAbbr);
     setActiveStateRecord(activeRecord || { name: formattedState || 'USA', abbr: stateAbbr, speed: '10 days', rating: 4.8, activeBuyers: 15 });
   }, [stateAbbr, activeRecord, formattedState]);
 
+  // Formspree Configuration Hook
   const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xpqgnqlj';
 
   // SECTION: Form Handlers
@@ -305,7 +306,7 @@ export default function MarketPage() {
 
             <div className="pt-6 grid grid-cols-3 gap-4 max-w-lg mx-auto lg:mx-0">
               <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-3 text-center transition hover:border-[#ff7043]/30">
-                <div className="flex justify-center text-amber-400 mb-1">{[...Array(5)].map((_, i) => <Star key={i} className="h-4.5 w-4.5 fill-current" />)}</div>
+                <div className="flex justify-center text-amber-400 mb-1">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-current" />)}</div>
                 <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-bold">Google Stars</p>
                 <p className="text-sm font-black text-white">5.0 Out of 5</p>
               </div>
@@ -323,7 +324,7 @@ export default function MarketPage() {
 
             <div className="text-xs text-slate-400 mt-2 flex items-center justify-center lg:justify-start space-x-1.5">
               <AlertCircle className="h-4 w-4 text-emerald-400" />
-              <span>We buy properties {inLocationText} currently listed with Real Estate Brokerages and active on the MLS. We are NOT soliciting your property as a listing.</span>
+              <span> We buy properties {inLocationText} currently listed with Real Estate Brokerages and active on the MLS. We are NOT soliciting your property as a listing.</span>
             </div>
           </div>
 
