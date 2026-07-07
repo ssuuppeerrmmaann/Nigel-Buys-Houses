@@ -1,8 +1,9 @@
 // FILE: HomePage.tsx
-// TITLE: HomePage (Typography Scaling & Copy Updates)
+// TITLE: HomePage (Language Purge & Hardcoded Coordinator)
 
 // SECTION: Core Imports
 import React, { useState, useEffect } from 'react';
+import { useForm } from '@formspree/react';
 import { 
   Building, ShieldCheck, DollarSign, CheckCircle, Clock, ArrowRight, ChevronDown, ChevronUp, Star, Trash, Phone, Mail, MapPin, Menu, X, Award, Calculator, TrendingUp, Users, Lock, AlertCircle, Check, ThumbsUp, ExternalLink, ChevronRight, ClipboardList
 } from 'lucide-react';
@@ -26,38 +27,38 @@ interface Lead {
 
 // SECTION: Static Data
 const STATE_RECORDS = [
-  { name: 'Alabama', abbr: 'AL', speed: '12 days', coordinator: 'Marcus Vance', rating: 4.9, activeBuyers: 14 },
-  { name: 'Arizona', abbr: 'AZ', speed: '10 days', coordinator: 'Sarah Jennings', rating: 4.8, activeBuyers: 22 },
-  { name: 'California', abbr: 'CA', speed: '11 days', coordinator: 'Derrick Hall', rating: 4.9, activeBuyers: 45 },
-  { name: 'Colorado', abbr: 'CO', speed: '12 days', coordinator: 'Brooke Miller', rating: 4.7, activeBuyers: 16 },
-  { name: 'Connecticut', abbr: 'CT', speed: '14 days', coordinator: 'Thomas Cole', rating: 4.8, activeBuyers: 9 },
-  { name: 'Delaware', abbr: 'DE', speed: '13 days', coordinator: 'Thomas Cole', rating: 4.6, activeBuyers: 8 },
-  { name: 'Florida', abbr: 'FL', speed: '9 days', coordinator: 'Elena Rodriguez', rating: 4.9, activeBuyers: 38 },
-  { name: 'Georgia', abbr: 'GA', speed: '10 days', coordinator: 'Raymond Harris', rating: 4.8, activeBuyers: 27 },
-  { name: 'Idaho', abbr: 'ID', speed: '14 days', coordinator: 'Sarah Jennings', rating: 4.7, activeBuyers: 7 },
-  { name: 'Illinois', abbr: 'IL', speed: '11 days', coordinator: 'David Sterling', rating: 4.8, activeBuyers: 19 },
-  { name: 'Indiana', abbr: 'IN', speed: '11 days', coordinator: 'Karen Wu', rating: 4.9, activeBuyers: 15 },
-  { name: 'Kentucky', abbr: 'KY', speed: '12 days', coordinator: 'Marcus Vance', rating: 4.7, activeBuyers: 12 },
-  { name: 'Louisiana', abbr: 'LA', speed: '13 days', coordinator: 'Elena Rodriguez', rating: 4.6, activeBuyers: 10 },
-  { name: 'Maryland', abbr: 'MD', speed: '12 days', coordinator: 'Thomas Cole', rating: 4.8, activeBuyers: 14 },
-  { name: 'Massachusetts', abbr: 'MA', speed: '14 days', coordinator: 'Thomas Cole', rating: 4.9, activeBuyers: 18 },
-  { name: 'Michigan', abbr: 'MI', speed: '10 days', coordinator: 'David Sterling', rating: 4.9, activeBuyers: 21 },
-  { name: 'Minnesota', abbr: 'MN', speed: '12 days', coordinator: 'Karen Wu', rating: 4.7, activeBuyers: 11 },
-  { name: 'Missouri', abbr: 'MO', speed: '11 days', coordinator: 'David Sterling', rating: 4.8, activeBuyers: 14 },
-  { name: 'Nevada', abbr: 'NV', speed: '10 days', coordinator: 'Sarah Jennings', rating: 4.8, activeBuyers: 13 },
-  { name: 'North Carolina', abbr: 'NC', speed: '10 days', coordinator: 'Marcus Vance', rating: 4.9, activeBuyers: 26 },
-  { name: 'Ohio', abbr: 'OH', speed: '11 days', coordinator: 'David Sterling', rating: 4.8, activeBuyers: 23 },
-  { name: 'Oklahoma', abbr: 'OK', speed: '12 days', coordinator: 'Karen Wu', rating: 4.7, activeBuyers: 10 },
-  { name: 'Oregon', abbr: 'OR', speed: '12 days', coordinator: 'Sarah Jennings', rating: 4.8, activeBuyers: 12 },
-  { name: 'Pennsylvania', abbr: 'PA', speed: '11 days', coordinator: 'Thomas Cole', rating: 4.8, activeBuyers: 20 },
-  { name: 'Rhode Island', abbr: 'RI', speed: '14 days', coordinator: 'Thomas Cole', rating: 4.9, activeBuyers: 6 },
-  { name: 'Tennessee', abbr: 'TN', speed: '10 days', coordinator: 'Marcus Vance', rating: 4.9, activeBuyers: 18 },
-  { name: 'Texas', abbr: 'TX', speed: '9 days', coordinator: 'Brooke Miller', rating: 4.9, activeBuyers: 42 },
-  { name: 'Utah', abbr: 'UT', speed: '11 days', coordinator: 'Brooke Miller', rating: 4.8, activeBuyers: 11 },
-  { name: 'Virginia', abbr: 'VA', speed: '11 days', coordinator: 'Thomas Cole', rating: 4.8, activeBuyers: 19 },
-  { name: 'Washington', abbr: 'WA', speed: '12 days', coordinator: 'Sarah Jennings', rating: 4.8, activeBuyers: 17 },
-  { name: 'Wisconsin', abbr: 'WI', speed: '12 days', coordinator: 'David Sterling', rating: 4.8, activeBuyers: 13 },
-  { name: 'Wyoming', abbr: 'WY', speed: '14 days', coordinator: 'Sarah Jennings', rating: 4.6, activeBuyers: 5 }
+  { name: 'Alabama', abbr: 'AL', speed: '12 days', rating: 4.9, activeBuyers: 14 },
+  { name: 'Arizona', abbr: 'AZ', speed: '10 days', rating: 4.8, activeBuyers: 22 },
+  { name: 'California', abbr: 'CA', speed: '11 days', rating: 4.9, activeBuyers: 45 },
+  { name: 'Colorado', abbr: 'CO', speed: '12 days', rating: 4.7, activeBuyers: 16 },
+  { name: 'Connecticut', abbr: 'CT', speed: '14 days', rating: 4.8, activeBuyers: 9 },
+  { name: 'Delaware', abbr: 'DE', speed: '13 days', rating: 4.6, activeBuyers: 8 },
+  { name: 'Florida', abbr: 'FL', speed: '9 days', rating: 4.9, activeBuyers: 38 },
+  { name: 'Georgia', abbr: 'GA', speed: '10 days', rating: 4.8, activeBuyers: 27 },
+  { name: 'Idaho', abbr: 'ID', speed: '14 days', rating: 4.7, activeBuyers: 7 },
+  { name: 'Illinois', abbr: 'IL', speed: '11 days', rating: 4.8, activeBuyers: 19 },
+  { name: 'Indiana', abbr: 'IN', speed: '11 days', rating: 4.9, activeBuyers: 15 },
+  { name: 'Kentucky', abbr: 'KY', speed: '12 days', rating: 4.7, activeBuyers: 12 },
+  { name: 'Louisiana', abbr: 'LA', speed: '13 days', rating: 4.6, activeBuyers: 10 },
+  { name: 'Maryland', abbr: 'MD', speed: '12 days', rating: 4.8, activeBuyers: 14 },
+  { name: 'Massachusetts', abbr: 'MA', speed: '14 days', rating: 4.9, activeBuyers: 18 },
+  { name: 'Michigan', abbr: 'MI', speed: '10 days', rating: 4.9, activeBuyers: 21 },
+  { name: 'Minnesota', abbr: 'MN', speed: '12 days', rating: 4.7, activeBuyers: 11 },
+  { name: 'Missouri', abbr: 'MO', speed: '11 days', rating: 4.8, activeBuyers: 14 },
+  { name: 'Nevada', abbr: 'NV', speed: '10 days', rating: 4.8, activeBuyers: 13 },
+  { name: 'North Carolina', abbr: 'NC', speed: '10 days', rating: 4.9, activeBuyers: 26 },
+  { name: 'Ohio', abbr: 'OH', speed: '11 days', rating: 4.8, activeBuyers: 23 },
+  { name: 'Oklahoma', abbr: 'OK', speed: '12 days', rating: 4.7, activeBuyers: 10 },
+  { name: 'Oregon', abbr: 'OR', speed: '12 days', rating: 4.8, activeBuyers: 12 },
+  { name: 'Pennsylvania', abbr: 'PA', speed: '11 days', rating: 4.8, activeBuyers: 20 },
+  { name: 'Rhode Island', abbr: 'RI', speed: '14 days', rating: 4.9, activeBuyers: 6 },
+  { name: 'Tennessee', abbr: 'TN', speed: '10 days', rating: 4.9, activeBuyers: 18 },
+  { name: 'Texas', abbr: 'TX', speed: '9 days', rating: 4.9, activeBuyers: 42 },
+  { name: 'Utah', abbr: 'UT', speed: '11 days', rating: 4.8, activeBuyers: 11 },
+  { name: 'Virginia', abbr: 'VA', speed: '11 days', rating: 4.8, activeBuyers: 19 },
+  { name: 'Washington', abbr: 'WA', speed: '12 days', rating: 4.8, activeBuyers: 17 },
+  { name: 'Wisconsin', abbr: 'WI', speed: '12 days', rating: 4.8, activeBuyers: 13 },
+  { name: 'Wyoming', abbr: 'WY', speed: '14 days', rating: 4.6, activeBuyers: 5 }
 ];
 
 // SECTION: Main Component
@@ -88,9 +89,28 @@ export default function HomePage() {
   const [repairEstimate, setRepairEstimate] = useState(15000);
 
   const [expandedFaq, setExpandedAccordion] = useState<number | null>(null);
+  const [leadsDb, setLeadsDb] = useState<Lead[]>([]);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [adminSearch, setAdminOpenSearch] = useState('');
 
   // Native Formspree Endpoint Configuration
-  const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xpqgnqlj';
+  const [formState, handleFormspreeSubmit] = useForm('xpqgnqlj');
+
+  useEffect(() => {
+    const saved = localStorage.getItem('fair_simple_leads');
+    if (saved) {
+      try {
+        setLeadsDb(JSON.parse(saved));
+      } catch (e) {
+        console.error('Failed to parse local leads', e);
+      }
+    }
+  }, []);
+
+  const saveLeadsToStorage = (updatedList: Lead[]) => {
+    localStorage.setItem('fair_simple_leads', JSON.stringify(updatedList));
+    setLeadsDb(updatedList);
+  };
 
   const handleStateAbbrSelect = (abbr: string) => {
     setActiveStateAbbr(abbr);
@@ -138,24 +158,14 @@ export default function HomePage() {
     };
 
     try {
-      const response = await fetch(FORMSPREE_ENDPOINT, {
-        method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(leadPayload)
-      });
-
-      if (response.ok) {
-        leadPayload.webhookSynced = true;
-      } else {
-        console.warn('Formspree received payload but returned an error status.');
-      }
+      await handleFormspreeSubmit(leadPayload as any);
+      leadPayload.webhookSynced = true;
     } catch (err) {
-      console.error('Formspree fetch failed.', err);
+      console.error('Formspree dispatch failed.', err);
     }
 
+    const updatedDb = [leadPayload, ...leadsDb];
+    saveLeadsToStorage(updatedDb);
     setSuccessLead(leadPayload);
     setIsSubmitting(false);
     setStep(3);
@@ -173,6 +183,13 @@ export default function HomePage() {
     setEmail('');
     setSuccessLead(null);
     setFieldError('');
+  };
+
+  const handleDeleteLead = (id: string) => {
+    if (confirm('Are you sure you want to remove this lead record locally?')) {
+      const updated = leadsDb.filter(l => l.id !== id);
+      saveLeadsToStorage(updated);
+    }
   };
 
   // SECTION: Calculators
@@ -206,7 +223,7 @@ export default function HomePage() {
           
           <div className="flex items-center space-x-3.5">
             <img 
-              src="https://github.com/ssuuppeerrmmaann/Nigel-Buys-Houses/blob/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" 
+              src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" 
               alt="Nigel Buys Houses Logo" 
               className="h-10 md:h-12 w-auto object-contain" 
               referrerPolicy="no-referrer" 
@@ -346,7 +363,7 @@ export default function HomePage() {
             {step === 1 && (
               <div className="space-y-4">
                 <div className="text-center lg:text-left">
-                  <h3 className="text-lg md:text-xl font-bold font-serif mb-1 text-[#092641]">Let's See What Your Home Is Worth</h3>
+                  <h3 className="text-lg md:text-xl font-bold font-serif mb-1 text-[#092641]">Let's See What Your Property Is Worth</h3>
                   <p className="text-xs text-[#868c92] font-semibold">Enter your address for a calculated direct offer analysis.</p>
                 </div>
 
@@ -480,11 +497,11 @@ export default function HomePage() {
                 </div>
 
                 <p className="text-base md:text-lg text-slate-700 font-semibold mt-4">
-                  Our coordinator (Mr. Christopher Clowers) will follow up via phone call at <strong className="text-[#092641]">{successLead.phone}</strong> shortly to answer any timeline questions.
+                  Our coordinator (Christopher Clowers) will follow up via phone call at <strong className="text-[#092641]">{successLead.phone}</strong> shortly to answer any timeline questions.
                 </p>
 
                 <button onClick={resetLeadForm} className="w-full bg-[#092641] hover:bg-[#1e3a5f] text-white py-4 rounded-lg text-base font-extrabold shadow transition mt-4" style={{ minHeight: '44px' }}>
-                  Valuate Another Home
+                  Valuate Another Property
                 </button>
               </div>
             )}
@@ -509,7 +526,7 @@ export default function HomePage() {
             <div className="bg-[#f8fafc] rounded-2xl p-8 border border-slate-100 relative group hover:shadow-lg transition">
               <div className="absolute top-0 right-8 translate-y-[-50%] bg-[#ff7043] text-white font-serif font-bold text-xl pt-1 pb-1.5 px-4 rounded-full inline-block">1</div>
               <div className="text-[#ff7043] bg-white p-4 rounded-xl shadow inline-block mb-6"><ClipboardList className="h-8 w-8 stroke-2" /></div>
-              <h3 className="text-2xl font-bold font-serif mb-3 text-[#092641]">Tell Us About Your Home</h3>
+              <h3 className="text-2xl font-bold font-serif mb-3 text-[#092641]">Tell Us About Your Property</h3>
               <p className="text-slate-600 text-base md:text-lg font-normal leading-relaxed">Fill out the quick valuation form above, or call our 24/7 coordinator line. It is easy, completely free, and carries zero obligation.</p>
             </div>
 
@@ -551,7 +568,7 @@ export default function HomePage() {
                 <span className="text-xs text-[#868c92] font-semibold tracking-wider flex items-center"><Clock className="h-4 w-4 mr-1 text-[#ff7043]" />9-14 Days Close</span>
               </div>
               <h3 className="text-2xl font-serif font-black text-[#092641] mb-3">The "Nigel Buys Houses Cash Offer"</h3>
-              <p className="text-slate-500 text-sm font-light mb-6">Get a quick, assured buyout estimate on your property. Perfect for fast relocation, inherited homes, dealing with tenants, or escaping heavy foreclosure timelines.</p>
+              <p className="text-slate-500 text-sm font-light mb-6">Get a quick, assured buyout estimate on your property. Perfect for fast relocation, inherited houses, dealing with tenants, or escaping heavy foreclosure timelines.</p>
 
               <ul className="space-y-3.5 text-sm font-medium text-slate-700">
                 <li className="flex items-start space-x-2"><Check className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" /><span><strong>Zero cleaning required:</strong> Sell in exact as-is condition. Leave unwanted property items.</span></li>
@@ -567,7 +584,7 @@ export default function HomePage() {
                 <span className="text-xs text-[#868c92] font-semibold tracking-wider flex items-center"><TrendingUp className="h-4 w-4 mr-1 text-emerald-500" />Max Value Program</span>
               </div>
               <h3 className="text-2xl font-serif font-black text-[#092641] mb-3">The "Almost Retail" Partnership</h3>
-              <p className="text-slate-500 text-sm font-light mb-6">Keep the majority of your hard-earned equity. We match your property with our localized trained buyer network who are willing to purchase your home with minimal repair expectations.</p>
+              <p className="text-slate-500 text-sm font-light mb-6">Keep the majority of your hard-earned equity. We match your property with our localized trained buyer network who are willing to purchase your house with minimal repair expectations.</p>
 
               <ul className="space-y-3.5 text-sm font-medium text-slate-705">
                 <li className="flex items-start space-x-2"><Check className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" /><span><strong>Highest Payout:</strong> Payout matches close to standard market value.</span></li>
@@ -583,7 +600,7 @@ export default function HomePage() {
               <div className="space-y-2">
                 <span className="text-sm font-black text-[#ff7043] uppercase tracking-widest flex items-center"><Calculator className="h-5 w-5 mr-2" />Lead Equity Tool</span>
                 <h3 className="text-2xl md:text-3xl font-serif font-black text-[#092641]">Interactive Net Payout Calculator</h3>
-                <p className="text-slate-500 text-base md:text-lg font-medium">Input your home values to contrast direct payout vs brokerage expenses.</p>
+                <p className="text-slate-500 text-base md:text-lg font-medium">Input your property values to contrast direct payout vs brokerage expenses.</p>
               </div>
 
               <div className="w-full lg:w-96 text-left space-y-2">
@@ -620,7 +637,7 @@ export default function HomePage() {
                 </div>
 
                 <div className="bg-[#f8fafc] p-4 rounded-lg border border-slate-200 text-sm md:text-base text-slate-600 leading-relaxed font-medium">
-                  💡 <strong className="text-slate-800">Traditional holding fee:</strong> Traditional listing can take 3 to 6 months. Taxes, insurance, and mortgage during wait average around <strong>2%</strong> of home values.
+                  💡 <strong className="text-slate-800">Traditional holding fee:</strong> Traditional listing can take 3 to 6 months. Taxes, insurance, and mortgage during wait average around <strong>2%</strong> of property values.
                 </div>
               </div>
 
@@ -676,7 +693,7 @@ export default function HomePage() {
               </div>
 
               <div className="border border-slate-100 rounded-xl overflow-y-auto max-h-96 divide-y divide-slate-100">
-                {STATE_RECORDS.filter(s => s.name.toLowerCase().includes(mapSearch.toLowerCase()) || s.coordinator.toLowerCase().includes(mapSearch.toLowerCase())).map((st) => (
+                {STATE_RECORDS.filter(s => s.name.toLowerCase().includes(mapSearch.toLowerCase())).map((st) => (
                   <button key={st.abbr} onClick={() => handleStateAbbrSelect(st.abbr)} className={`w-full text-left px-4 py-3 flex justify-between items-center transition ${activeStateAbbr === st.abbr ? 'bg-[#ff7043]/10 font-bold border-l-4 border-[#ff7043]' : 'hover:bg-slate-50'}`}>
                     <div className="flex items-center space-x-2.5">
                       <span className="inline-block bg-[#092641] text-white text-[10px] w-5 h-5 rounded flex items-center justify-center font-bold tracking-tight">{st.abbr}</span>
@@ -712,9 +729,9 @@ export default function HomePage() {
                   <div className="space-y-4">
                     <p className="text-xs text-[#868c92] font-semibold uppercase tracking-wider">Local Coordinator on Duty</p>
                     <div className="flex items-center space-x-3.5">
-                      <div className="h-12 w-12 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xl text-[#ff7043] border border-slate-700">{activeStateRecord.coordinator.charAt(0)}</div>
+                      <div className="h-12 w-12 rounded-full bg-slate-800 flex items-center justify-center font-bold text-xl text-[#ff7043] border border-slate-700">C</div>
                       <div>
-                        <p className="font-extrabold text-white text-base leading-none">{activeStateRecord.coordinator}</p>
+                        <p className="font-extrabold text-white text-base leading-none">Christopher Clowers</p>
                         <p className="text-[11px] text-slate-400 mt-1">Lead Real Estate Coordinator</p>
                       </div>
                     </div>
@@ -728,7 +745,7 @@ export default function HomePage() {
                   <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-5 flex flex-col justify-between">
                     <div>
                       <div className="flex text-amber-400 mb-3.5">{[...Array(5)].map((_, i) => <Star key={i} className="h-4 w-4 fill-current shrink-0" />)}</div>
-                      <p className="text-xs text-slate-300 italic leading-relaxed">"Choosing Nigel Buys Houses in {activeStateRecord.name} was the best choice I made after my mom passed away. {activeStateRecord.coordinator} handled the difficult probate details. I walked away with cash in 11 days."</p>
+                      <p className="text-xs text-slate-300 italic leading-relaxed">"Choosing Nigel Buys Houses in {activeStateRecord.name} was the best choice I made after my mom passed away. Christopher Clowers handled the difficult probate details. I walked away with cash in 11 days."</p>
                     </div>
                     <div className="mt-4 pt-3.5 border-t border-slate-800 flex justify-between items-center text-[11px] text-slate-400">
                       <span>&mdash; Verified {activeStateAbbr} Seller Review</span><strong className="text-white">Rated A+</strong>
@@ -756,7 +773,7 @@ export default function HomePage() {
             <div className="lg:col-span-7 space-y-6">
               <span className="text-[#ff7043] text-xs font-extrabold uppercase tracking-widest block">Core Company Manifesto</span>
               <h2 className="text-3xl md:text-4xl font-serif font-black tracking-tight leading-tight">People Over Profits &mdash; Always. No High Pressure.</h2>
-              <p className="text-slate-300 text-sm md:text-base font-light leading-relaxed">When we launched Nigel Buys Houses, we didn't want to become just another transactional investment company. We've spent over 7 years educating home owners on what option truly retains their equity. No confusing terminology or aggressive agent push-tactics &mdash; just structured, fair solutions.</p>
+              <p className="text-slate-300 text-sm md:text-base font-light leading-relaxed">When we launched Nigel Buys Houses, we didn't want to become just another transactional investment company. We've spent over 7 years educating property owners on what option truly retains their equity. No confusing terminology or aggressive agent push-tactics &mdash; just structured, fair solutions.</p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-4">
                 <div className="flex items-start space-x-2"><ShieldCheck className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" /><div><strong className="block text-white text-sm">Transparency Standard</strong><span className="text-slate-400 text-xs">Clear calculations, local county records matched honestly.</span></div></div>
@@ -772,7 +789,7 @@ export default function HomePage() {
                 <div className="py-3 flex justify-between"><span className="font-bold text-white">✔ Integrity First</span><span className="text-right text-slate-400">Do right even when unmonitored</span></div>
                 <div className="py-3 flex justify-between"><span className="font-bold text-white">✔ Transparent Calculations</span><span className="text-right text-slate-400">Zero hidden fees or list surprises</span></div>
                 <div className="py-3 flex justify-between"><span className="font-bold text-white">✔ No-Pressure Guidance</span><span className="text-right text-slate-400">Empower, never coerce or lock</span></div>
-                <div className="py-3 flex justify-between"><span className="font-bold text-white">✔ Support Local Vets</span><span className="text-right text-slate-400">A portion of profits go to veteran houses</span></div>
+                <div className="py-3 flex justify-between"><span className="font-bold text-white">✔ Support Local Vets</span><span className="text-right text-slate-400">A portion of profits go to veteran housing</span></div>
                 <div className="py-3 flex justify-between"><span className="font-bold text-white">✔ Win-Win Payouts</span><span className="text-right text-slate-400">If it doesn't solve your query, reject</span></div>
               </div>
               <div className="mt-6 text-center text-[10px] text-slate-500 italic">A+ BBB Rated Real Estate Investor standard representation code.</div>
@@ -789,11 +806,11 @@ export default function HomePage() {
           </div>
           <div className="space-y-4">
             {[
-              { q: "What type of properties does Nigel Buys Houses purchase?", a: "We buy single family homes, townhouses, duplexes, multi-family, and vacant properties. It doesn't matter if your home requires light updates or total hoarder cleanups &mdash; we prepare as-is valuation estimates for absolutely any physical condition." },
+              { q: "What type of properties does Nigel Buys Houses purchase?", a: "We buy single family houses, townhouses, duplexes, multi-family, and vacant properties. It doesn't matter if your property requires light updates or total hoarder cleanups &mdash; we prepare as-is valuation estimates for absolutely any physical condition." },
               { q: "How exactly do you calculate my payout offer?", a: "Our formula is direct and transparent. We look at: 1) Local active comparable sales (comps) in your immediate county, 2) Necessary structural repair estimates, 3) Intrinsic holding fees. We combine this into a quick direct cash buyout option or our Retail Partnership program." },
-              { q: "Is there any obligation when I submit my home address?", a: "No! Accessing your layout valuation carries zero obligation. We run state records for you free of charge. You can review our estimates with family, compare against standard agents, or discard completely." },
-              { q: "Are cash offers for houses actually legitimate?", a: "While the market has speculative investors, certified buyers like Nigel Buys Houses with an A+ BBB Accreditation verify funds securely with closing title offices. We utilize local, national underwriters to secure standard client transactions legally." },
-              { q: "What if my house needs extensive structural repairs?", a: "We purchase in exact as-is condition. You do not need to clean closets, pick up trash, repair roofing, or paint walls. We absorb those coordination efforts fully within our buyout structures." },
+              { q: "Is there any obligation when I submit my property address?", a: "No! Accessing your layout valuation carries zero obligation. We run state records for you free of charge. You can review our estimates with family, compare against standard agents, or discard completely." },
+              { q: "Are cash offers for properties actually legitimate?", a: "While the market has speculative investors, certified buyers like Nigel Buys Houses with an A+ BBB Accreditation verify funds securely with closing title offices. We utilize local, national underwriters to secure standard client transactions legally." },
+              { q: "What if my property needs extensive structural repairs?", a: "We purchase in exact as-is condition. You do not need to clean closets, pick up trash, repair roofing, or paint walls. We absorb those coordination efforts fully within our buyout structures." },
               { q: "How fast can you buy my house and make the payout?", a: "Once you approve the direct buy offer, we can close the escrow processing in 9 to 14 business days. Payout is coordinated directly through a local certified bank wire or bank-guaranteed cashier checks." }
             ].map((faq, index) => (
               <div key={index} className="bg-white rounded-xl border border-[#ced1d5]/40 overflow-hidden shadow-xs hover:border-[#ff7043]/30 transition">
@@ -812,10 +829,10 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid grid-cols-1 md:grid-cols-12 gap-10">
           <div className="md:col-span-8 space-y-4">
             <div className="flex items-center space-x-2.5">
-              <img src="https://github.com/ssuuppeerrmmaann/Nigel-Buys-Houses/blob/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" alt="Nigel Buys Houses Logo" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
+              <img src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" alt="Nigel Buys Houses Logo" className="h-8 w-auto object-contain" referrerPolicy="no-referrer" />
               <span className="font-serif font-black text-[#092641] text-lg">Nigel Buys Houses</span>
             </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed max-w-2xl">&copy; {new Date().getFullYear()} Nigel Buys Houses. Powered by certified local underwriters. Subject to active local guidelines. All home valuations are estimates based on accessible public registry records. This website replicates state operations showing options with high-fidelity performance.</p>
+            <p className="text-[11px] text-slate-400 leading-relaxed max-w-2xl">&copy; {new Date().getFullYear()} Nigel Buys Houses. Powered by certified local underwriters. Subject to active local guidelines. All property valuations are estimates based on accessible public registry records. This website replicates state operations showing options with high-fidelity performance.</p>
             <div className="flex items-center space-x-3">
               <span className="inline-block h-2.5 w-2.5 bg-green-500 rounded-full" />
               <span className="text-[11px] text-slate-400">Local Title Partners Secured &amp; Bonded</span>
@@ -827,7 +844,7 @@ export default function HomePage() {
             <div className="space-y-2">
               <a href="tel:(480)500-9801" className="font-bold text-[#ff7043] text-sm hover:underline block">☎ Call/Text: (480) 500-9801</a>
               <p className="text-slate-400 text-[11px]">Active average response under 15 minutes.</p>
-              <p className="text-slate-400 text-[11px]">Corporate Office: Rockford, MI 49341</p>
+              <p className="text-slate-400 text-[11px]">Corporate Office: Phoenix, AZ 85016-7849</p>
             </div>
           </div>
         </div>
