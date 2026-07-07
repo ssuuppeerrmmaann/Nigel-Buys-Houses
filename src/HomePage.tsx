@@ -1,5 +1,5 @@
 // FILE: HomePage.tsx
-// TITLE: HomePage (Strict Native Fetch)
+// TITLE: HomePage (SEO Pillar Integration)
 
 // SECTION: Core Imports
 import React, { useState } from 'react';
@@ -89,7 +89,6 @@ export default function HomePage() {
 
   const [expandedFaq, setExpandedAccordion] = useState<number | null>(null);
 
-  // Native Formspree Endpoint Configuration
   const FORMSPREE_ENDPOINT = 'https://formspree.io/f/xpqgnqlj';
 
   const handleStateAbbrSelect = (abbr: string) => {
@@ -98,7 +97,6 @@ export default function HomePage() {
     if (record) setActiveStateRecord(record);
   };
 
-  // SECTION: Form Handlers
   const handleNextStep = () => {
     setFieldError('');
     if (step === 1) {
@@ -140,18 +138,11 @@ export default function HomePage() {
     try {
       const response = await fetch(FORMSPREE_ENDPOINT, {
         method: 'POST',
-        headers: {
-          'Accept': 'application/json',
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
         body: JSON.stringify(leadPayload)
       });
 
-      if (response.ok) {
-        leadPayload.webhookSynced = true;
-      } else {
-        console.warn('Formspree received payload but returned an error status.');
-      }
+      if (response.ok) leadPayload.webhookSynced = true;
     } catch (err) {
       console.error('Formspree fetch failed.', err);
     }
@@ -175,10 +166,8 @@ export default function HomePage() {
     setFieldError('');
   };
 
-  // SECTION: Calculators
   const cashOfferPercentage = 0.76; 
   const cashOfferValue = Math.round(houseValue * cashOfferPercentage - (repairEstimate * 0.5));
-  
   const traditionalCommission = Math.round(houseValue * (agentCommissionPct / 100));
   const traditionalClosingCosts = Math.round(houseValue * (closingCostsPct / 100));
   const traditionalRepairs = repairEstimate;
@@ -192,7 +181,6 @@ export default function HomePage() {
   const partnerListingFee = Math.round(houseValue * 0.025); 
   const partnerNetPayout = partnerListingPrice - partnerClosingCosts - partnerSaleRepairs - partnerListingFee;
 
-  // SECTION: Render
   return (
     <div className="min-h-screen flex flex-col font-sans transition-colors duration-300">
       
@@ -203,19 +191,9 @@ export default function HomePage() {
 
       <header className="bg-white border-b border-[#ced1d5]/40 sticky top-0 z-40 transform transition-all">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
-          
           <div className="flex items-center space-x-3.5">
-            <img 
-              src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" 
-              alt="Nigel Buys Houses Logo" 
-              className="h-10 md:h-12 w-auto object-contain" 
-              referrerPolicy="no-referrer" 
-            />
-            <div>
-              <span className="block font-serif text-xl md:text-2xl font-black text-[#092641] leading-none tracking-tight">
-                Nigel Buys Houses
-              </span>
-            </div>
+            <img src="https://raw.githubusercontent.com/ssuuppeerrmmaann/Nigel-Buys-Houses/refs/heads/main/assets/images/Nigel%20Buys%20Houses%20NBH%20Favicon.png?raw=true" alt="Nigel Buys Houses Logo" className="h-10 md:h-12 w-auto object-contain" referrerPolicy="no-referrer" />
+            <div><span className="block font-serif text-xl md:text-2xl font-black text-[#092641] leading-none tracking-tight">Nigel Buys Houses</span></div>
           </div>
 
           <nav className="hidden lg:flex items-center space-x-8 text-[16px] font-bold text-[#092641]">
@@ -230,17 +208,10 @@ export default function HomePage() {
             <div className="hidden sm:flex flex-col text-right">
               <span className="text-[10px] text-[#868c92] font-bold uppercase tracking-wider">Talk to a Coordinator</span>
               <a href="tel:(480)500-9801" className="text-base md:text-lg font-extrabold text-[#ff7043] hover:underline flex items-center justify-end">
-                <Phone className="h-4 w-4 mr-1.5 fill-current" />
-                (480) 500-9801
+                <Phone className="h-4 w-4 mr-1.5 fill-current" />(480) 500-9801
               </a>
             </div>
-
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2.5 rounded-lg border border-[#ced1d5] text-[#092641] hover:bg-[#f8f8f8]"
-              style={{ minHeight: '44px', minWidth: '44px' }}
-              aria-label="Toggle Menu"
-            >
+            <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="lg:hidden p-2.5 rounded-lg border border-[#ced1d5] text-[#092641] hover:bg-[#f8f8f8]" style={{ minHeight: '44px', minWidth: '44px' }}>
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
           </div>
@@ -254,12 +225,10 @@ export default function HomePage() {
             <a href="#coverage" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2.5 rounded-lg font-semibold text-slate-800 hover:bg-[#ff7043]/10 hover:text-[#ff7043]">Where We Buy Map</a>
             <a href="#trust" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2.5 rounded-lg font-semibold text-slate-800 hover:bg-[#ff7043]/10 hover:text-[#ff7043]">Our Company Values</a>
             <a href="#faqs" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2.5 rounded-lg font-semibold text-slate-800 hover:bg-[#ff7043]/10 hover:text-[#ff7043]">FAQs</a>
-            
             <div className="pt-4 border-t border-slate-200 flex flex-col space-y-2">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider px-2.5">Call our 24/7 hotline</span>
               <a href="tel:(480)500-9801" className="flex items-center justify-center p-3 text-lg font-black bg-[#ff7043] text-white rounded-lg shadow" style={{ minHeight: '44px' }}>
-                <Phone className="h-5 w-5 mr-2 fill-current" />
-                (480) 500-9801
+                <Phone className="h-5 w-5 mr-2 fill-current" />(480) 500-9801
               </a>
             </div>
           </div>
@@ -271,7 +240,6 @@ export default function HomePage() {
         <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-slate-905 to-transparent pointer-events-none" />
         
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
-          
           <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
             <div className="inline-flex items-center space-x-2 bg-slate-800/80 border border-slate-700 px-4 py-2 rounded-full text-sm font-semibold text-[#ff7043] tracking-wide">
               <span>A+ Accredited Business</span>
@@ -280,7 +248,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-black font-serif leading-tight">
-              Sell Your House <span className="text-[#ff7043]">Fast On Your Terms</span>. No Headaches.
+              Sell Your Property <span className="text-[#ff7043]">Fast On Your Terms</span>. No Headaches.
             </h1>
 
             <p className="text-slate-300 text-lg md:text-xl font-light max-w-2xl mx-auto lg:mx-0 leading-relaxed">
@@ -289,23 +257,17 @@ export default function HomePage() {
 
             <div className="pt-6 grid grid-cols-3 gap-4 max-w-lg mx-auto lg:mx-0">
               <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-3 text-center transition hover:border-[#ff7043]/30">
-                <div className="flex justify-center text-amber-400 mb-1">
-                  {[...Array(5)].map((_, i) => <Star key={i} className="h-4.5 w-4.5 fill-current" />)}
-                </div>
+                <div className="flex justify-center text-amber-400 mb-1">{[...Array(5)].map((_, i) => <Star key={i} className="h-4.5 w-4.5 fill-current" />)}</div>
                 <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-bold">Google Stars</p>
                 <p className="text-sm font-black text-white">5.0 Out of 5</p>
               </div>
-
               <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-3 text-center transition hover:border-[#ff7043]/30">
                 <div className="text-blue-400 text-base font-black mb-1 tracking-widest">BBB A+</div>
                 <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-bold">TRUSTED</p>
                 <p className="text-sm font-black text-white">Accredited</p>
               </div>
-
               <div className="bg-slate-800/50 border border-slate-800 rounded-xl p-3 text-center transition hover:border-[#ff7043]/30">
-                <div className="flex justify-center text-blue-400 mb-1">
-                  <ThumbsUp className="h-4.5 w-4.5 fill-current" />
-                </div>
+                <div className="flex justify-center text-blue-400 mb-1"><ThumbsUp className="h-4.5 w-4.5 fill-current" /></div>
                 <p className="text-[10px] md:text-xs text-slate-400 uppercase tracking-wider font-bold">REVIEWS</p>
                 <p className="text-sm font-black text-white">5-Star Rated</p>
               </div>
@@ -329,10 +291,7 @@ export default function HomePage() {
                 <span className={step >= 3 ? "text-green-500 font-extrabold" : ""}>3. ESTIMATES</span>
               </div>
               <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
-                <div 
-                  className={`h-full transition-all duration-500 ${step === 3 ? "bg-green-500" : "bg-[#ff7043]"}`}
-                  style={{ width: step === 1 ? '33.3%' : step === 2 ? '66.6%' : '100%' }}
-                />
+                <div className={`h-full transition-all duration-500 ${step === 3 ? "bg-green-500" : "bg-[#ff7043]"}`} style={{ width: step === 1 ? '33.3%' : step === 2 ? '66.6%' : '100%' }} />
               </div>
             </div>
 
@@ -355,13 +314,7 @@ export default function HomePage() {
                     <label className="block text-xs font-bold uppercase text-[#092641] mb-1">Street Address <span className="text-red-500">*</span></label>
                     <div className="relative">
                       <MapPin className="absolute left-3 top-3 h-5 w-5 text-slate-400" />
-                      <input 
-                        type="text" 
-                        value={address}
-                        onChange={(e) => setAddress(e.target.value)}
-                        placeholder="e.g. 129 Walnut Dr" 
-                        className="w-full pl-10 pr-3 py-2.5 border-2 border-slate-200 rounded-lg text-sm focus:border-[#ff7043] focus:outline-none"
-                      />
+                      <input type="text" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="e.g. 129 Walnut Dr" className="w-full pl-10 pr-3 py-2.5 border-2 border-slate-200 rounded-lg text-sm focus:border-[#ff7043] focus:outline-none" />
                     </div>
                   </div>
 
@@ -378,11 +331,7 @@ export default function HomePage() {
 
                   <div>
                     <label className="block text-xs font-bold uppercase text-[#092641] mb-1">State <span className="text-red-500">*</span></label>
-                    <select 
-                      value={selectedState}
-                      onChange={(e) => setSelectedState(e.target.value)}
-                      className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-lg text-sm bg-white focus:border-[#ff7043] focus:outline-none"
-                    >
+                    <select value={selectedState} onChange={(e) => setSelectedState(e.target.value)} className="w-full px-3 py-2.5 border-2 border-slate-200 rounded-lg text-sm bg-white focus:border-[#ff7043] focus:outline-none">
                       {STATE_RECORDS.map((st) => (
                         <option key={st.abbr} value={st.name}>{st.name}</option>
                       ))}
@@ -429,22 +378,9 @@ export default function HomePage() {
                 </div>
 
                 <div className="flex space-x-3.5 pt-2">
-                  <button type="button" onClick={() => setStep(1)} className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-lg text-sm font-bold transition" style={{ minHeight: '44px' }}>
-                    Back
-                  </button>
-
+                  <button type="button" onClick={() => setStep(1)} className="w-1/3 bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-lg text-sm font-bold transition" style={{ minHeight: '44px' }}>Back</button>
                   <button type="submit" disabled={isSubmitting} className="w-2/3 bg-[#ff7043] hover:bg-[#e65100] text-white py-3 rounded-lg font-serif text-base font-bold shadow-md hover:shadow-lg transition flex items-center justify-center space-x-2" style={{ minHeight: '44px' }}>
-                    {isSubmitting ? (
-                      <>
-                        <span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        <span>Calculating...</span>
-                      </>
-                    ) : (
-                      <>
-                        <span>Get Valuation Payout</span>
-                        <ArrowRight className="h-4 w-4" />
-                      </>
-                    )}
+                    {isSubmitting ? <><span className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin" /><span>Calculating...</span></> : <><span>Get Valuation Payout</span><ArrowRight className="h-4 w-4" /></>}
                   </button>
                 </div>
               </form>
@@ -487,7 +423,6 @@ export default function HomePage() {
               <span>We value your privacy. Your address is strictly confidential.</span>
             </div>
           </div>
-
         </div>
       </section>
 
@@ -560,7 +495,7 @@ export default function HomePage() {
                 <span className="text-xs text-[#868c92] font-semibold tracking-wider flex items-center"><TrendingUp className="h-4 w-4 mr-1 text-emerald-500" />Max Value Program</span>
               </div>
               <h3 className="text-2xl font-serif font-black text-[#092641] mb-3">The "Almost Retail" Partnership</h3>
-              <p className="text-slate-500 text-sm font-light mb-6">Keep the majority of your hard-earned equity. We match your property with our localized trained buyer network who are willing to purchase your house with minimal repair expectations.</p>
+              <p className="text-slate-500 text-sm font-light mb-6">Keep the majority of your hard-earned equity. We match your property with our localized trained buyer network who are willing to purchase your property with minimal repair expectations.</p>
 
               <ul className="space-y-3.5 text-sm font-medium text-slate-705">
                 <li className="flex items-start space-x-2"><Check className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" /><span><strong>Highest Payout:</strong> Payout matches close to standard market value.</span></li>
@@ -670,7 +605,7 @@ export default function HomePage() {
 
               <div className="border border-slate-100 rounded-xl overflow-y-auto max-h-96 divide-y divide-slate-100">
                 {STATE_RECORDS.filter(s => s.name.toLowerCase().includes(mapSearch.toLowerCase())).map((st) => (
-                  <button key={st.abbr} onClick={() => handleStateAbbrSelect(st.abbr)} className={`w-full text-left px-4 py-3 flex justify-between items-center transition ${activeStateAbbr === st.abbr ? 'bg-[#ff7043]/10 font-bold border-l-4 border-[#ff7043]' : 'hover:bg-slate-50'}`}>
+                  <a href={`/${st.name.toLowerCase().replace(/ /g, '-')}`} key={st.abbr} className={`w-full text-left px-4 py-3 flex justify-between items-center transition ${activeStateAbbr === st.abbr ? 'bg-[#ff7043]/10 font-bold border-l-4 border-[#ff7043]' : 'hover:bg-slate-50 block'}`}>
                     <div className="flex items-center space-x-2.5">
                       <span className="inline-block bg-[#092641] text-white text-[10px] w-5 h-5 rounded flex items-center justify-center font-bold tracking-tight">{st.abbr}</span>
                       <span className="text-sm text-[#092641]">{st.name}</span>
@@ -679,7 +614,7 @@ export default function HomePage() {
                       <span className="text-slate-400 font-semibold">{st.speed}</span>
                       <span className="text-[#ff7043] font-bold">★ {st.rating}</span>
                     </div>
-                  </button>
+                  </a>
                 ))}
               </div>
             </div>
@@ -796,6 +731,24 @@ export default function HomePage() {
                 </button>
                 {expandedFaq === index && <div className="px-5 pb-5 pt-1 text-slate-600 font-light text-sm border-t border-slate-50 leading-relaxed bg-[#f8fafc]">{faq.a}</div>}
               </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION: SEO Spider Funnel Block */}
+      <section className="bg-white py-12 border-t border-slate-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h4 className="text-xs font-black text-[#092641] uppercase tracking-widest mb-4">Areas We Serve</h4>
+          <div className="flex flex-wrap gap-2">
+            {STATE_RECORDS.map((st) => (
+              <a 
+                key={st.abbr} 
+                href={`/${st.name.toLowerCase().replace(/ /g, '-')}`} 
+                className="text-[11px] font-bold text-slate-500 hover:text-[#ff7043] bg-slate-50 hover:bg-slate-100 px-3 py-1.5 rounded transition"
+              >
+                {st.name}
+              </a>
             ))}
           </div>
         </div>
